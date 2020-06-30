@@ -109,9 +109,9 @@ int main (int argc, char *argv[])
 {
   //routingComparison test;
   int nWifi=50;
-  int nSinks=1; 
+  int nSinks=10; 
   double txp=7.5;
-  double totalTime=3000; 
+  double totalTime=100; 
   uint32_t protocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
   //test.Run(nWifi,nSinks,  txp, totalTime, protocol,argc,argv);
 // Users may find it convenient to turn on explicit debugging
@@ -180,7 +180,7 @@ int main (int argc, char *argv[])
 //setup mobility
   MobilityHelper mobilityAdhoc;
 
-  int64_t streamIndex = 0; // used to get consistent mobility across scenarios
+  int64_t streamIndex = 1; // used to get consistent mobility across scenarios
 
   ObjectFactory pos;
   pos.SetTypeId ("ns3::RandomRectanglePositionAllocator");
@@ -313,8 +313,8 @@ OnOffHelper onoff1 ("ns3::TcpSocketFactory",Address ());
 */
 
   // Create a packet sink to receive these packets on n2...
-//for (int i = 0; i < nSinks; i++)
-    {int i=0;
+for (int i = 0; i < nSinks; i++)
+    {//int i=0;
   PacketSinkHelper sink ("ns3::TcpSocketFactory",
                          InetSocketAddress (Ipv4Address::GetAny (), Port));
 
