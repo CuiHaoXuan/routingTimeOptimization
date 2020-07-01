@@ -93,6 +93,7 @@ routingComparison::Run(int nWifi,int nSinks, double txp, double totalTime,uint32
 
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
+void setupMobility(double, double,NodeContainer);
 // The number of bytes to send in this simulation.
 static const uint32_t totalTxBytes = 200000;
 static uint32_t currentTxBytes = 0;
@@ -196,54 +197,8 @@ int main (int argc, char *argv[])
 
 
 //setup mobility
-  MobilityHelper mobilityAdhoc;
-
-  int64_t streamIndex = 2; // used to get consistent mobility across scenarios
-
-  ObjectFactory pos;
-  std::stringstream sX;
-  std::stringstream sY;
-  sX<<"ns3::UniformRandomVariable[Min=0.0|Max="<<X<<"]";
-  sY<<"ns3::UniformRandomVariable[Min=0.0|Max="<<Y<<"]";
-  pos.SetTypeId ("ns3::RandomRectanglePositionAllocator");
-  pos.Set ("X", StringValue (sX.str()));
-  pos.Set ("Y", StringValue (sY.str()));
-
-  Ptr<PositionAllocator> taPositionAlloc = pos.Create ()->GetObject<PositionAllocator> ();
-  streamIndex += taPositionAlloc->AssignStreams (streamIndex);
-
-  int nodeSpeed=20;  //in m/s
-  int nodePause = 0; //in s
-  std::stringstream ssSpeed;
-  ssSpeed << "ns3::UniformRandomVariable[Min=0.0|Max=" << nodeSpeed << "]";
-  std::stringstream ssPause;
-  ssPause << "ns3::ConstantRandomVariable[Constant=" << nodePause << "]";
-
-  mobilityAdhoc.SetMobilityModel ("ns3::RandomWaypointMobilityModel",
-                                  "Speed", StringValue (ssSpeed.str ()),
-                                  "Pause", StringValue (ssPause.str ()),
-                                  "PositionAllocator", PointerValue (taPositionAlloc));
-
-
-/*If you want to fix the node positions
-
-mobilityAdhoc.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-        Vector node1_Position(0.1, 0.1, 0.0);
-	Vector node2_Position(50.0, 0.1,0.0);
-	Vector node3_Position(100.0, 0.1, 0.0);	
-
-	ListPositionAllocator myListPositionAllocator;
-	myListPositionAllocator.Add(node1_Position);
-	myListPositionAllocator.Add(node2_Position);
-	myListPositionAllocator.Add(node3_Position);
-	
-	mobilityAdhoc.SetPositionAllocator(&myListPositionAllocator);
-*/
-
-  mobilityAdhoc.SetPositionAllocator (taPositionAlloc);
-  mobilityAdhoc.Install (adhocNodes);
-  streamIndex += mobilityAdhoc.AssignStreams (adhocNodes, streamIndex);
-  NS_UNUSED (streamIndex); // From this point, streamIndex is unused
+setupMobility(X,Y,adhocNodes);
+  
 //end of setup mobility
 
   AodvHelper aodv;
@@ -432,4 +387,55 @@ WriteUntilBufferFull (Ptr<Socket> localSocket, uint32_t txSpace)
   localSocket->Close ();
 }
 
+void
+setupMobility(double X, double Y,NodeContainer adhocNodes)
+{
+MobilityHelper mobilityAdhoc;
 
+  int64_t streamIndex = 2; // used to get consistent mobility across scenarios
+
+  ObjectFactory pos;
+  std::stringstream sX;
+  std::stringstream sY;
+  sX<<"ns3::UniformRandomVariable[Min=0.0|Max="<<X<<"]";
+  sY<<"ns3::UniformRandomVariable[Min=0.0|Max="<<Y<<"]";
+  pos.SetTypeId ("ns3::RandomRectanglePositionAllocator");
+  pos.Set ("X", StringValue (sX.str()));
+  pos.Set ("Y", StringValue (sY.str()));
+
+  Ptr<PositionAllocator> taPositionAlloc = pos.Create ()->GetObject<PositionAllocator> ();
+  streamIndex += taPositionAlloc->AssignStreams (streamIndex);
+
+  int nodeSpeed=20;  //in m/s
+  int nodePause = 0; //in s
+  std::stringstream ssSpeed;
+  ssSpeed << "ns3::UniformRandomVariable[Min=0.0|Max=" << nodeSpeed << "]";
+  std::stringstream ssPause;
+  ssPause << "ns3::ConstantRandomVariable[Constant=" << nodePause << "]";
+
+  mobilityAdhoc.SetMobilityModel ("ns3::RandomWaypointMobilityModel",
+                                  "Speed", StringValue (ssSpeed.str ()),
+                                  "Pause", StringValue (ssPause.str ()),
+                                  "PositionAllocator", PointerValue (taPositionAlloc));
+
+
+/*If you want to fix the node positions
+
+mobilityAdhoc.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+        Vector node1_Position(0.1, 0.1, 0.0);
+	Vector node2_Position(50.0, 0.1,0.0);
+	Vector node3_Position(100.0, 0.1, 0.0);	
+
+	ListPositionAllocator myListPositionAllocator;
+	myListPositionAllocator.Add(node1_Position);
+	myListPositionAllocator.Add(node2_Position);
+	myListPositionAllocator.Add(node3_Position);
+	
+	mobilityAdhoc.SetPositionAllocator(&myListPositionAllocator);
+*/
+
+  mobilityAdhoc.SetPositionAllocator (taPositionAlloc);
+  mobilityAdhoc.Install (adhocNodes);
+  streamIndex += mobilityAdhoc.AssignStreams (adhocNodes, streamIndex);
+  NS_UNUSED (streamIndex); // From this point, streamIndex is unused
+}
