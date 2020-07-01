@@ -95,6 +95,7 @@ void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
 void setupMobility(double, double,NodeContainer);
 void setuproutingProtocol(uint32_t,NodeContainer);
+YansWifiPhyHelper setupWifiPhy(double);
 // The number of bytes to send in this simulation.
 static const uint32_t totalTxBytes = 200000;
 static uint32_t currentTxBytes = 0;
@@ -158,24 +159,16 @@ int main (int argc, char *argv[])
   NodeContainer adhocNodes;
   adhocNodes.Create (nWifi);
 
-/*
-  NodeContainer n1n2;
-  n1n2.Add (n0n1.Get (1));
-  n1n2.Create (1);
-*/
-
   // We create the channels first without any IP addressing information
   // First make and configure the helper, so that it will put the appropriate
   // attributes on the network interfaces and channels we are about to install.
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211b);
 
-  YansWifiPhyHelper wifiPhy =  YansWifiPhyHelper::Default ();
-  YansWifiChannelHelper wifiChannel;
-  wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
-  wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
-  wifiPhy.SetChannel (wifiChannel.Create ());
-
+//setup wifi physical attributes
+  YansWifiPhyHelper wifiPhy; 
+  wifiPhy= setupWifiPhy(txp);
+  
 // Add a mac and disable rate control
   WifiMacHelper wifiMac;
   wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
@@ -183,9 +176,7 @@ int main (int argc, char *argv[])
                                 "ControlMode",StringValue ("DsssRate11Mbps"));
   wifiMac.SetType ("ns3::AdhocWifiMac");
 
-  //double txp = 7.5;
-  wifiPhy.Set ("TxPowerStart",DoubleValue (txp));
-  wifiPhy.Set ("TxPowerEnd", DoubleValue (txp));
+  
 
   NetDeviceContainer adhocDevices = wifi.Install (wifiPhy, wifiMac, adhocNodes);
 
@@ -198,15 +189,11 @@ int main (int argc, char *argv[])
 
 
 //setup mobility
-setupMobility(X,Y,adhocNodes);
-  
-//end of setup mobility
+setupMobility(X,Y,adhocNodes);  
 
 //setup routing protocol
-
 setuproutingProtocol(protocol,adhocNodes);
   
-//end of setup routing protocol
  
 /*
   AodvHelper aodv;
@@ -448,4 +435,21 @@ InternetStackHelper internet;
       internet.Install (adhocNodes);
       dsrMain.Install (dsr, adhocNodes);
     }
+}
+
+YansWifiPhyHelper
+setupWifiPhy(double txp)
+{
+  YansWifiPhyHelper wifiPhy; 
+  wifiPhy =  YansWifiPhyHelper::Default ();
+  
+  YansWifiChannelHelper wifiChannel;
+  wifiChannel.SetPropagationDelay ("ns3::ConstantSpeedPropagationDelayModel");
+  wifiChannel.AddPropagationLoss ("ns3::FriisPropagationLossModel");
+  
+  wifiPhy.SetChannel (wifiChannel.Create ());
+
+  wifiPhy.Set ("TxPowerStart",DoubleValue (txp));
+  wifiPhy.Set ("TxPowerEnd", DoubleValue (txp));
+  return wifiPhy;
 }
