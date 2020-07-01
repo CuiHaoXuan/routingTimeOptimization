@@ -62,8 +62,6 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("UAVrouting");
 
-
-
 //static const uint32_t port=50000;
 /*
 class routingComparison
@@ -122,6 +120,8 @@ int main (int argc, char *argv[])
   double totalTime=100; 
   uint32_t protocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
   const std::string rate="2048bps";
+  double X=150.0;
+  double Y=300.0;
   
   std::stringstream ss;
   ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks;
@@ -201,9 +201,13 @@ int main (int argc, char *argv[])
   int64_t streamIndex = 2; // used to get consistent mobility across scenarios
 
   ObjectFactory pos;
+  std::stringstream sX;
+  std::stringstream sY;
+  sX<<"ns3::UniformRandomVariable[Min=0.0|Max="<<X<<"]";
+  sY<<"ns3::UniformRandomVariable[Min=0.0|Max="<<Y<<"]";
   pos.SetTypeId ("ns3::RandomRectanglePositionAllocator");
-  pos.Set ("X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=150.0]"));
-  pos.Set ("Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=300.0]"));
+  pos.Set ("X", StringValue (sX.str()));
+  pos.Set ("Y", StringValue (sY.str()));
 
   Ptr<PositionAllocator> taPositionAlloc = pos.Create ()->GetObject<PositionAllocator> ();
   streamIndex += taPositionAlloc->AssignStreams (streamIndex);
