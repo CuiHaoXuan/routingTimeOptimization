@@ -62,40 +62,15 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("UAVrouting");
 
-//static const uint32_t port=50000;
-/*
-class routingComparison
-{
-public:
-   routingComparison();
-  
-   //void Run(int nWifi,int nSinks, double txp, double totalTime,uint32_t protocol,int argc, char **argv);
-   //std::string CommandSetup (int argc, char **argv);
-
-//private:
-
-  
-//};
-
-routingComparison::routingComparison()
-       :port()
-{
-}
-
-
-
-void
-routingComparison::Run(int nWifi,int nSinks, double txp, double totalTime,uint32_t protocol,int argc, char **argv)
-{
-  
-}
-*/
 
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
 void setupMobility(double, double,NodeContainer);
 void setuproutingProtocol(uint32_t,NodeContainer);
 YansWifiPhyHelper setupWifiPhy(double);
+Ipv4InterfaceContainer IPsetup(NetDeviceContainer);
+void setupConnection(int,double,int,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+
 // The number of bytes to send in this simulation.
 static const uint32_t totalTxBytes = 200000;
 static uint32_t currentTxBytes = 0;
@@ -122,26 +97,17 @@ int main (int argc, char *argv[])
   double txp=7.5;
   double totalTime=100; 
   uint32_t protocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
-  const std::string rate="2048bps";
   double X=150.0;
   double Y=300.0;
+  std::string phyMode ("DsssRate11Mbps");
+  uint16_t Port = 50000;
   
+  const std::string rate="2048bps";
+
   std::stringstream ss;
   ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks;
   std::string tr_name (ss.str ());
   
-//Set Non-unicastMode rate to unicast mode
-  Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",StringValue ("DsssRate11Mbps"));
-
-
-//test.Run(nWifi,nSinks,  txp, totalTime, protocol,argc,argv);
-// Users may find it convenient to turn on explicit debugging
-  // for selected modules; the below lines suggest how to do this
-  //  LogComponentEnable("TcpL4Protocol", LOG_LEVEL_ALL);
-  //  LogComponentEnable("TcpSocketImpl", LOG_LEVEL_ALL);
-  //  LogComponentEnable("PacketSink", LOG_LEVEL_ALL);
-  //  LogComponentEnable("TcpLargeTransfer", LOG_LEVEL_ALL);
-
   CommandLine cmd;
   cmd.Parse (argc, argv);
 
@@ -152,10 +118,9 @@ int main (int argc, char *argv[])
       data[i] = m;
     }
 
-  // Here, we will explicitly create three nodes.  The first container contains
-  // nodes 0 and 1 from the diagram above, and the second one contains nodes
-  // 1 and 2.  This reflects the channel connectivity, and will be used to
-  // install the network interfaces and connect them with a channel.
+  // Here, we will explicitly create the nodes. 
+  // This will be used to install the network
+  // interfaces and connect them with a channel.
   NodeContainer adhocNodes;
   adhocNodes.Create (nWifi);
 
@@ -164,65 +129,35 @@ int main (int argc, char *argv[])
   // attributes on the network interfaces and channels we are about to install.
   WifiHelper wifi;
   wifi.SetStandard (WIFI_PHY_STANDARD_80211b);
+  //disable rate control  
+  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
+                                "DataMode",StringValue (phyMode),
+                                "ControlMode",StringValue (phyMode));
 
-//setup wifi physical attributes
+  //setup wifi physical attributes
   YansWifiPhyHelper wifiPhy; 
   wifiPhy= setupWifiPhy(txp);
   
-// Add a mac and disable rate control
-  WifiMacHelper wifiMac;
-  wifi.SetRemoteStationManager ("ns3::ConstantRateWifiManager",
-                                "DataMode",StringValue ("DsssRate11Mbps"),
-                                "ControlMode",StringValue ("DsssRate11Mbps"));
-  wifiMac.SetType ("ns3::AdhocWifiMac");
 
-  
+  //Set Non-unicastMode rate to unicast mode
+  Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",StringValue (phyMode));
+
+  // Add a mac 
+  WifiMacHelper wifiMac;
+  wifiMac.SetType ("ns3::AdhocWifiMac");  
 
   NetDeviceContainer adhocDevices = wifi.Install (wifiPhy, wifiMac, adhocNodes);
 
-  //wifi.SetDeviceAttribute ("DataRate", DataRateValue (DataRate (10000000)));
-  //wifi.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (10)));
+  //setup mobility
+  setupMobility(X,Y,adhocNodes);  
 
-  // And then install devices and channels connecting our topology.
-  //NetDeviceContainer dev0 = p2p.Install (n0n1);
-  //NetDeviceContainer dev1 = p2p.Install (n1n2);
-
-
-//setup mobility
-setupMobility(X,Y,adhocNodes);  
-
-//setup routing protocol
-setuproutingProtocol(protocol,adhocNodes);
-  
- 
-/*
-  AodvHelper aodv;
-  Ipv4ListRoutingHelper list;
-  list.Add (aodv, 100);
-
-
-  
-  
-  InternetStackHelper internet;
-  internet.SetRoutingHelper (list);
-  internet.InstallAll ();
-*/
-
-
-  //internet.InstallAll ();
+  //setup routing protocol
+  setuproutingProtocol(protocol,adhocNodes);
 
   // Later, we add IP addresses.
-  Ipv4AddressHelper addressAdhoc;
-  addressAdhoc.SetBase ("10.1.1.0", "255.255.255.0");
   Ipv4InterfaceContainer adhocInterfaces;
-  adhocInterfaces = addressAdhoc.Assign (adhocDevices);
-  //ipv4.Assign (dev0);
-  //ipv4.SetBase ("10.1.2.0", "255.255.255.0");
-  //Ipv4InterfaceContainer ipInterfs = ipv4.Assign (dev1);
-
-  // and setup ip routing tables to get total ip-level connectivity.
-  //Ipv4GlobalRoutingHelper::PopulateRoutingTables ();
-
+  adhocInterfaces=IPsetup(adhocDevices);
+  
   ///////////////////////////////////////////////////////////////////////////
   // Simulation 1
   //
@@ -233,42 +168,11 @@ setuproutingProtocol(protocol,adhocNodes);
   //
   ///////////////////////////////////////////////////////////////////////////
 
-  uint16_t Port = 50000;
-
-/*onOff
-OnOffHelper onoff1 ("ns3::TcpSocketFactory",Address ());
-  onoff1.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1.0]"));//it is the default value [Constant=1.0]
-  onoff1.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.0]"));//to keep it sending cbr traffic at constant rate
-*/
-
   // Create a packet sink to receive these packets on n2...
-for (int i = 0; i < nSinks; i++)
-    {//int i=0;
-  PacketSinkHelper sink ("ns3::TcpSocketFactory",
-                         InetSocketAddress (Ipv4Address::GetAny (), Port));
-
-  ApplicationContainer apps = sink.Install (adhocNodes.Get (i));
-  apps.Start (Seconds (0.0));
-  apps.Stop (Seconds (totalTime));
-
-  // Create a source to send packets from n0.  Instead of a full Application
-  // and the helper APIs you might see in other example files, this example
-  // will use sockets directly and register some socket callbacks as a sending
-  // "Application".
-
-  // Create and bind the socket...
-  Ptr<Socket> localSocket =
-    Socket::CreateSocket (adhocNodes.Get (nSinks+i), TcpSocketFactory::GetTypeId ());
-  localSocket->Bind ();
-
-  // Trace changes to the congestion window
-  Config::ConnectWithoutContext ("/NodeList/0/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&CwndTracer));
-
-  // ...and schedule the sending "Application"; This is similar to what an 
-  // ns3::Application subclass would do internally.
-  Simulator::ScheduleNow (&StartFlow, localSocket,
-                          adhocInterfaces.GetAddress (i), Port);
-}
+  for (int i = 0; i < nSinks; i++)
+     {
+        setupConnection(i,totalTime,nSinks,Port,adhocInterfaces,adhocNodes);
+     }
   // One can toggle the comment for the following line on or off to see theanim.SetMaxPktsPerTraceFile (2000000);
   // effects of finite send buffer modelling.  One can also change the size of
   // said buffer.
@@ -452,4 +356,43 @@ setupWifiPhy(double txp)
   wifiPhy.Set ("TxPowerStart",DoubleValue (txp));
   wifiPhy.Set ("TxPowerEnd", DoubleValue (txp));
   return wifiPhy;
+}
+
+Ipv4InterfaceContainer 
+IPsetup(NetDeviceContainer adhocDevices)
+{
+  Ipv4AddressHelper addressAdhoc;
+  addressAdhoc.SetBase ("10.1.1.0", "255.255.255.0");
+  Ipv4InterfaceContainer adhocInterfaces;
+  adhocInterfaces = addressAdhoc.Assign (adhocDevices);
+  return adhocInterfaces;
+}
+
+void 
+setupConnection(int i,double totalTime,int nSinks,uint16_t  Port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
+{
+  PacketSinkHelper sink ("ns3::TcpSocketFactory",
+                         InetSocketAddress (Ipv4Address::GetAny (), Port));
+
+  ApplicationContainer apps = sink.Install (adhocNodes.Get (i));
+  apps.Start (Seconds (0.0));
+  apps.Stop (Seconds (totalTime));
+
+  // Create a source to send packets from n0.  Instead of a full Application
+  // and the helper APIs you might see in other example files, this example
+  // will use sockets directly and register some socket callbacks as a sending
+  // "Application".
+
+  // Create and bind the socket...
+  Ptr<Socket> localSocket =
+  Socket::CreateSocket (adhocNodes.Get (nSinks+i), TcpSocketFactory::GetTypeId ());
+  localSocket->Bind ();
+
+  // Trace changes to the congestion window
+  Config::ConnectWithoutContext ("/NodeList/0/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&CwndTracer));
+
+  // ...and schedule the sending "Application"; This is similar to what an 
+  // ns3::Application subclass would do internally.
+  Simulator::ScheduleNow (&StartFlow, localSocket,
+                       adhocInterfaces.GetAddress (i), Port);
 }
