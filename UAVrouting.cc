@@ -108,7 +108,7 @@ static void CwndTracer (uint32_t oldval, uint32_t newval)
 int main (int argc, char *argv[])
 {
   //routingComparison test;
-  int nWifi=50;
+  int nWifi=5;
   int nSinks=2; 
   double txp=7.5;
   double totalTime=100; 
@@ -194,8 +194,8 @@ int main (int argc, char *argv[])
 
   ObjectFactory pos;
   pos.SetTypeId ("ns3::RandomRectanglePositionAllocator");
-  pos.Set ("X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=300.0]"));
-  pos.Set ("Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=1500.0]"));
+  pos.Set ("X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=150.0]"));
+  pos.Set ("Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=300.0]"));
 
   Ptr<PositionAllocator> taPositionAlloc = pos.Create ()->GetObject<PositionAllocator> ();
   streamIndex += taPositionAlloc->AssignStreams (streamIndex);
@@ -360,6 +360,8 @@ for (int i = 0; i < nSinks; i++)
   AsciiTraceHelper ascii;
   wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
   wifiPhy.EnablePcapAll (tr_name);
+
+  MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
 
 AnimationInterface anim (tr_name+".xml");
 anim.SetMaxPktsPerTraceFile (2000000);
