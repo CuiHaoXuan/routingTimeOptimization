@@ -94,6 +94,7 @@ routingComparison::Run(int nWifi,int nSinks, double txp, double totalTime,uint32
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
 void setupMobility(double, double,NodeContainer);
+void setuproutingProtocol(uint32_t,NodeContainer);
 // The number of bytes to send in this simulation.
 static const uint32_t totalTxBytes = 200000;
 static uint32_t currentTxBytes = 0;
@@ -201,47 +202,11 @@ setupMobility(X,Y,adhocNodes);
   
 //end of setup mobility
 
-  AodvHelper aodv;
-  OlsrHelper olsr;
-  DsdvHelper dsdv;
-  DsrHelper dsr;
-  DsrMainHelper dsrMain;
-  Ipv4ListRoutingHelper list;
+//setup routing protocol
+
+setuproutingProtocol(protocol,adhocNodes);
   
-
-  switch (protocol)
-    {
-    case 1:
-      list.Add (olsr, 100);
-      //protocolName = "OLSR";
-      break;
-    case 2:
-      list.Add (aodv, 100);
-      //protocolName = "AODV";
-      break;
-    case 3:
-      list.Add (dsdv, 100);
-      //protocolName = "DSDV";
-      break;
-    case 4:
-      //protocolName = "DSR";
-      break;
-    default:
-      NS_FATAL_ERROR ("No such protocol:" << protocol);
-    }
-
-// Now add ip/tcp stack to all nodes.
-InternetStackHelper internet;
-  if (protocol < 4)
-    {
-      internet.SetRoutingHelper (list);
-      internet.InstallAll();// (adhocNodes);
-    }
-  else if (protocol == 4)
-    {
-      internet.Install (adhocNodes);
-      dsrMain.Install (dsr, adhocNodes);
-    }
+//end of setup routing protocol
  
 /*
   AodvHelper aodv;
@@ -438,4 +403,49 @@ mobilityAdhoc.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobilityAdhoc.Install (adhocNodes);
   streamIndex += mobilityAdhoc.AssignStreams (adhocNodes, streamIndex);
   NS_UNUSED (streamIndex); // From this point, streamIndex is unused
+}
+
+void setuproutingProtocol(uint32_t protocol,NodeContainer adhocNodes)
+{
+AodvHelper aodv;
+  OlsrHelper olsr;
+  DsdvHelper dsdv;
+  DsrHelper dsr;
+  DsrMainHelper dsrMain;
+  Ipv4ListRoutingHelper list;
+  
+
+  switch (protocol)
+    {
+    case 1:
+      list.Add (olsr, 100);
+      //protocolName = "OLSR";
+      break;
+    case 2:
+      list.Add (aodv, 100);
+      //protocolName = "AODV";
+      break;
+    case 3:
+      list.Add (dsdv, 100);
+      //protocolName = "DSDV";
+      break;
+    case 4:
+      //protocolName = "DSR";
+      break;
+    default:
+      NS_FATAL_ERROR ("No such protocol:" << protocol);
+    }
+
+// Now add ip/tcp stack to all nodes.
+InternetStackHelper internet;
+  if (protocol < 4)
+    {
+      internet.SetRoutingHelper (list);
+      internet.InstallAll();// (adhocNodes);
+    }
+  else if (protocol == 4)
+    {
+      internet.Install (adhocNodes);
+      dsrMain.Install (dsr, adhocNodes);
+    }
 }
