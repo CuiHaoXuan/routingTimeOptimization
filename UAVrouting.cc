@@ -366,10 +366,17 @@ for (int i = 0; i < nSinks; i++)
 AnimationInterface anim (tr_name+".xml");
 anim.SetMaxPktsPerTraceFile (2000000);
 
+  Ptr<FlowMonitor> flowmon;
+  FlowMonitorHelper flowmonHelper;
+  flowmon = flowmonHelper.InstallAll ();
+
   // Finally, set up the simulator to run.  The 1000 second hard limit is a
   // failsafe in case some change above causes the simulation to never end
   Simulator::Stop (Seconds (totalTime));
   Simulator::Run ();
+
+  flowmon->SerializeToXmlFile ((tr_name + ".flowmon").c_str(), true, true);
+
   Simulator::Destroy ();
   
 }
