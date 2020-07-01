@@ -16,6 +16,13 @@
  */
 
 //
+// This example simulate an UAV network, with nWifi UAV agents.
+// Agents are randomly positioned in an X*Y area and moves according to a mobility model.
+// They communicate through a wifi-based ad hoc network. 
+// The mobility model has chosen by the parameter protocol and could be:
+// 1-OLSR, 2-AODV, 3-DSDV, 4-DSR. 
+
+/* 
 // Network topology
 //
 //           10Mb/s, 10ms       10Mb/s, 10ms
@@ -28,6 +35,7 @@
 //   "tcp-large-transfer-$n-$i.pcap" where n and i represent node and interface
 // numbers respectively
 //  Usage (e.g.): ./waf --run tcp-large-transfer
+*/
 
 #include <iostream>
 #include <fstream>
