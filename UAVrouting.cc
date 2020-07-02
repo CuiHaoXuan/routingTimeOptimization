@@ -65,7 +65,7 @@ NS_LOG_COMPONENT_DEFINE ("UAVrouting");
 
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
-void setupMobility(double, double,NodeContainer,uint32_t);
+void setupMobility(double, double,double,NodeContainer,uint32_t);
 void setuproutingProtocol(uint32_t,NodeContainer);
 YansWifiPhyHelper setupWifiPhy(double);
 Ipv4InterfaceContainer IPsetup(NetDeviceContainer);
@@ -98,10 +98,11 @@ int main (int argc, char *argv[])
   int nSinks=2; 
   double txp=7.5;
   double totalTime=100;
-  uint32_t mobilityModel=1;//1-RWP, 2- 
+  uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
   uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
   double X=150.0;
   double Y=300.0;
+  double Z=300.0;
   std::string phyMode ("DsssRate11Mbps");
   uint16_t Port = 50000;
 
@@ -151,7 +152,7 @@ int main (int argc, char *argv[])
   NetDeviceContainer adhocDevices = wifi.Install (wifiPhy, wifiMac, adhocNodes);
 
   //setup mobility
-  setupMobility(X,Y,adhocNodes,mobilityModel);  
+  setupMobility(X,Y,Z,adhocNodes,mobilityModel);  
 
   //setup routing protocol
   setuproutingProtocol(routingProtocol,adhocNodes);
@@ -249,7 +250,7 @@ WriteUntilBufferFull (Ptr<Socket> localSocket, uint32_t txSpace)
 }
 
 void
-setupMobility(double X, double Y,NodeContainer adhocNodes,uint32_t mobilityModel)
+setupMobility(double X, double Y, double Z, NodeContainer adhocNodes,uint32_t mobilityModel)
 {
 MobilityHelper mobilityAdhoc;
 
@@ -258,11 +259,15 @@ MobilityHelper mobilityAdhoc;
   ObjectFactory pos;
   std::stringstream sX;
   std::stringstream sY;
+  std::stringstream sZ;
   sX<<"ns3::UniformRandomVariable[Min=0.0|Max="<<X<<"]";
   sY<<"ns3::UniformRandomVariable[Min=0.0|Max="<<Y<<"]";
-  pos.SetTypeId ("ns3::RandomRectanglePositionAllocator");
+  sZ<<"ns3::UniformRandomVariable[Min=0.0|Max="<<Z<<"]";
+  //pos.SetTypeId ("ns3::RandomRectanglePositionAllocator");
+  pos.SetTypeId ("ns3::RandomBoxPositionAllocator");
   pos.Set ("X", StringValue (sX.str()));
   pos.Set ("Y", StringValue (sY.str()));
+  pos.Set ("Z", StringValue (sZ.str()));
 
   Ptr<PositionAllocator> taPositionAlloc = pos.Create ()->GetObject<PositionAllocator> ();
   streamIndex += taPositionAlloc->AssignStreams (streamIndex);
