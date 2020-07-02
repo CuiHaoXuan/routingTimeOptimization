@@ -13,28 +13,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  *
+ * Author: Mohammed Gharib <mohammed.algharib@nau.edu>
+ *
  */
 
 //
 // This example simulate an UAV network, with nWifi UAV agents.
-// Agents are randomly positioned in an X*Y area and moves according to a mobility model.
+// Agents are randomly positioned in an X*Y*Z area and moves 
+// according to a chosen mobility model. The mobility models could be:
+// 1-RWP, 2-GaussMarkov
 // They communicate through a wifi-based ad hoc network. 
 // The mobility model has chosen by the parameter protocol and could be:
 // 1-OLSR, 2-AODV, 3-DSDV, 4-DSR. 
+// Author used manet-routing-compare.cc and tcp-large-transfer.cc
+// as its baseline examples and developed his code based on them.
 
 /* 
-// Network topology
-//
-//           10Mb/s, 10ms       10Mb/s, 10ms
-//       n0-----------------n1-----------------n2
-//
-//
-// - Tracing of queues and packet receptions to file 
-//   "tcp-large-transfer.tr"
-// - pcap traces also generated in the following files
-//   "tcp-large-transfer-$n-$i.pcap" where n and i represent node and interface
-// numbers respectively
-//  Usage (e.g.): ./waf --run tcp-large-transfer
+//  Usage (e.g.): ./waf --run UAVrouting
 */
 
 #include <iostream>
@@ -254,7 +249,7 @@ setupMobility(double X, double Y, double Z, NodeContainer adhocNodes,uint32_t mo
 {
 MobilityHelper mobilityAdhoc;
 
-  int64_t streamIndex = 2; // used to get consistent mobility across scenarios
+  int64_t streamIndex = 0; // used to get consistent mobility across scenarios
 
   ObjectFactory pos;
   std::stringstream sX;
@@ -274,11 +269,23 @@ MobilityHelper mobilityAdhoc;
 
   int nodeSpeed=20;  //in m/s
   int nodePause = 0; //in s
+  double direction=6.283185307; // in radian
+  double pitch=0.05; // in radian
+
   std::stringstream ssSpeed;
   ssSpeed << "ns3::UniformRandomVariable[Min=0.0|Max=" << nodeSpeed << "]";
   std::stringstream ssPause;
   ssPause << "ns3::ConstantRandomVariable[Constant=" << nodePause << "]";
-
+  std::stringstream ssDirection;
+  ssDirection << "ns3::UniformRandomVariable[Min=0|Max=" << direction << "]";
+  std::stringstream ssPitch;
+  ssPitch << "ns3::UniformRandomVariable[Min="<< pitch <<"|Max=" << pitch << "]";
+  std::stringstream ssNormVelocity;
+  ssNormVelocity <<"ns3::NormalRandomVariable[Mean=0.0|Variance=0.0|Bound=0.0]";
+  std::stringstream ssNormDirection;
+  ssNormDirection <<"ns3::NormalRandomVariable[Mean=0.0|Variance=0.2|Bound=0.4]";
+  std::stringstream ssNormPitch;
+  ssNormPitch <<"ns3::NormalRandomVariable[Mean=0.0|Variance=0.02|Bound=0.04]";
 
   switch (mobilityModel)
     {
@@ -290,23 +297,30 @@ MobilityHelper mobilityAdhoc;
       break;
     case 2:
       mobilityAdhoc.SetMobilityModel ("ns3::GaussMarkovMobilityModel",
-                     "Bounds", BoxValue (Box (0, 150000, 0, 150000, 0, 10000)),
+                     "Bounds", BoxValue (Box (0, X, 0, Y, 0, Z)),
                      "TimeStep", TimeValue (Seconds (0.5)),
                      "Alpha", DoubleValue (0.85),
-                     "MeanVelocity", StringValue ("ns3::UniformRandomVariable[Min=800|Max=1200]"),
-                     "MeanDirection", StringValue ("ns3::UniformRandomVariable[Min=0|Max=6.283185307]"),
-                     "MeanPitch", StringValue ("ns3::UniformRandomVariable[Min=0.05|Max=0.05]"),
-                     "NormalVelocity", StringValue ("ns3::NormalRandomVariable[Mean=0.0|Variance=0.0|Bound=0.0]"),
-                     "NormalDirection", StringValue ("ns3::NormalRandomVariable[Mean=0.0|Variance=0.2|Bound=0.4]"),
-                     "NormalPitch", StringValue ("ns3::NormalRandomVariable[Mean=0.0|Variance=0.02|Bound=0.04]"));
+                     "MeanVelocity", StringValue (ssSpeed.str()),
+                     "MeanDirection", StringValue (ssDirection.str()),
+                     "MeanPitch", StringValue (ssPitch.str()),
+                     "NormalVelocity", StringValue (ssNormVelocity.str()),
+                     "NormalDirection", StringValue (ssNormDirection.str()),
+                     "NormalPitch", StringValue (ssNormPitch.str()));
       break;
 /*    case 3:
-      list.Add (dsdv, 100);
-      //protocolName = "DSDV";
+      mobilityAdhoc.SetMobilityModel ("ns3::SteadyStateRandomWaypointMobilityModel",
+                                  //"Speed", StringValue (ssSpeed.str ()),
+                                  //"Pause", StringValue (ssPause.str ()),
+                                  "PositionAllocator", PointerValue (taPositionAllocSSRWP));
+      
       break;
     case 4:
-      //protocolName = "DSR";
-      break;*/
+      mobilityAdhoc.SetMobilityModel ("ns3::RandomWalk2dMobilityModel",
+                              "Mode", StringValue ("Time"),
+                              "Time", StringValue ("2s"),
+                              "Speed", StringValue ("ns3::ConstantRandomVariable[Constant=1.0]"),
+                              "Bounds", BoxValue (Box (0, X, 0, Y, 0, Z)));
+*/
     default:
       NS_FATAL_ERROR ("No such model:" << mobilityModel);
     }
