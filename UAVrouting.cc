@@ -288,11 +288,19 @@ MobilityHelper mobilityAdhoc;
                                   "Pause", StringValue (ssPause.str ()),
                                   "PositionAllocator", PointerValue (taPositionAlloc));
       break;
-/*    case 2:
-      list.Add (aodv, 100);
-      //protocolName = "AODV";
+    case 2:
+      mobilityAdhoc.SetMobilityModel ("ns3::GaussMarkovMobilityModel",
+                     "Bounds", BoxValue (Box (0, 150000, 0, 150000, 0, 10000)),
+                     "TimeStep", TimeValue (Seconds (0.5)),
+                     "Alpha", DoubleValue (0.85),
+                     "MeanVelocity", StringValue ("ns3::UniformRandomVariable[Min=800|Max=1200]"),
+                     "MeanDirection", StringValue ("ns3::UniformRandomVariable[Min=0|Max=6.283185307]"),
+                     "MeanPitch", StringValue ("ns3::UniformRandomVariable[Min=0.05|Max=0.05]"),
+                     "NormalVelocity", StringValue ("ns3::NormalRandomVariable[Mean=0.0|Variance=0.0|Bound=0.0]"),
+                     "NormalDirection", StringValue ("ns3::NormalRandomVariable[Mean=0.0|Variance=0.2|Bound=0.4]"),
+                     "NormalPitch", StringValue ("ns3::NormalRandomVariable[Mean=0.0|Variance=0.02|Bound=0.04]"));
       break;
-    case 3:
+/*    case 3:
       list.Add (dsdv, 100);
       //protocolName = "DSDV";
       break;
