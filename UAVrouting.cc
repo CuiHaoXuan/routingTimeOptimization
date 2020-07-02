@@ -65,11 +65,12 @@ NS_LOG_COMPONENT_DEFINE ("UAVrouting");
 
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
-void setupMobility(double, double,NodeContainer);
+void setupMobility(double, double,NodeContainer,uint32_t);
 void setuproutingProtocol(uint32_t,NodeContainer);
 YansWifiPhyHelper setupWifiPhy(double);
 Ipv4InterfaceContainer IPsetup(NetDeviceContainer);
 void setupConnection(int,double,int,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+
 
 // The number of bytes to send in this simulation.
 static const uint32_t totalTxBytes = 200000;
@@ -89,19 +90,21 @@ static void CwndTracer (uint32_t oldval, uint32_t newval)
   NS_LOG_INFO ("Moving cwnd from " << oldval << " to " << newval);
 }
 
+//###################### main() ###########################
 int main (int argc, char *argv[])
 {
   //routingComparison test;
   int nWifi=5;
   int nSinks=2; 
   double txp=7.5;
-  double totalTime=100; 
-  uint32_t protocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
+  double totalTime=100;
+  uint32_t mobilityModel=1;//1-RWP, 2- 
+  uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
   double X=150.0;
   double Y=300.0;
   std::string phyMode ("DsssRate11Mbps");
   uint16_t Port = 50000;
-  
+
   const std::string rate="2048bps";
 
   std::stringstream ss;
@@ -136,8 +139,7 @@ int main (int argc, char *argv[])
 
   //setup wifi physical attributes
   YansWifiPhyHelper wifiPhy; 
-  wifiPhy= setupWifiPhy(txp);
-  
+  wifiPhy= setupWifiPhy(txp);  
 
   //Set Non-unicastMode rate to unicast mode
   Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",StringValue (phyMode));
@@ -149,10 +151,10 @@ int main (int argc, char *argv[])
   NetDeviceContainer adhocDevices = wifi.Install (wifiPhy, wifiMac, adhocNodes);
 
   //setup mobility
-  setupMobility(X,Y,adhocNodes);  
+  setupMobility(X,Y,adhocNodes,mobilityModel);  
 
   //setup routing protocol
-  setuproutingProtocol(protocol,adhocNodes);
+  setuproutingProtocol(routingProtocol,adhocNodes);
 
   // Later, we add IP addresses.
   Ipv4InterfaceContainer adhocInterfaces;
@@ -168,41 +170,44 @@ int main (int argc, char *argv[])
   //
   ///////////////////////////////////////////////////////////////////////////
 
-  // Create a packet sink to receive these packets on n2...
+  // Create the connections...
   for (int i = 0; i < nSinks; i++)
      {
         setupConnection(i,totalTime,nSinks,Port,adhocInterfaces,adhocNodes);
      }
-  // One can toggle the comment for the following line on or off to see theanim.SetMaxPktsPerTraceFile (2000000);
-  // effects of finite send buffer modelling.  One can also change the size of
-  // said buffer.
+  // One can toggle the comment for the following line on or off to see  
+  // the effects of finite send buffer modelling.  One can also change 
+  // the size of said buffer.
 
   //localSocket->SetAttribute("SndBufSize", UintegerValue(4096));
 
   //Ask for ASCII and pcap traces of network traffic
+  
   AsciiTraceHelper ascii;
-  wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
-  wifiPhy.EnablePcapAll (tr_name);
+  Ptr<FlowMonitor> flowmon;
 
+  wifiPhy.EnablePcapAll (tr_name);
+  wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
   MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
 
-AnimationInterface anim (tr_name+".xml");
-anim.SetMaxPktsPerTraceFile (2000000);
+  AnimationInterface anim (tr_name+".xml");
+  anim.SetMaxPktsPerTraceFile (2000000);
 
-  Ptr<FlowMonitor> flowmon;
   FlowMonitorHelper flowmonHelper;
-  flowmon = flowmonHelper.InstallAll ();
-
-  // Finally, set up the simulator to run.  The 1000 second hard limit is a
+  flowmon = flowmonHelper.InstallAll (); 
+  
+  // Finally, set up the simulator to run.  The 'totalTime' second hard limit is a
   // failsafe in case some change above causes the simulation to never end
   Simulator::Stop (Seconds (totalTime));
   Simulator::Run ();
-
+  
   flowmon->SerializeToXmlFile ((tr_name + ".flowmon").c_str(), true, true);
 
   Simulator::Destroy ();
   
 }
+//###################### end of main() ###########################
+
 
 void
 StartFlow (Ptr<Socket> localSocket,
@@ -244,7 +249,7 @@ WriteUntilBufferFull (Ptr<Socket> localSocket, uint32_t txSpace)
 }
 
 void
-setupMobility(double X, double Y,NodeContainer adhocNodes)
+setupMobility(double X, double Y,NodeContainer adhocNodes,uint32_t mobilityModel)
 {
 MobilityHelper mobilityAdhoc;
 
@@ -269,10 +274,30 @@ MobilityHelper mobilityAdhoc;
   std::stringstream ssPause;
   ssPause << "ns3::ConstantRandomVariable[Constant=" << nodePause << "]";
 
-  mobilityAdhoc.SetMobilityModel ("ns3::RandomWaypointMobilityModel",
+
+  switch (mobilityModel)
+    {
+    case 1:
+      mobilityAdhoc.SetMobilityModel ("ns3::RandomWaypointMobilityModel",
                                   "Speed", StringValue (ssSpeed.str ()),
                                   "Pause", StringValue (ssPause.str ()),
                                   "PositionAllocator", PointerValue (taPositionAlloc));
+      break;
+/*    case 2:
+      list.Add (aodv, 100);
+      //protocolName = "AODV";
+      break;
+    case 3:
+      list.Add (dsdv, 100);
+      //protocolName = "DSDV";
+      break;
+    case 4:
+      //protocolName = "DSR";
+      break;*/
+    default:
+      NS_FATAL_ERROR ("No such model:" << mobilityModel);
+    }
+  
 
 
 /*If you want to fix the node positions
@@ -396,3 +421,5 @@ setupConnection(int i,double totalTime,int nSinks,uint16_t  Port,Ipv4InterfaceCo
   Simulator::ScheduleNow (&StartFlow, localSocket,
                        adhocInterfaces.GetAddress (i), Port);
 }
+
+
