@@ -120,7 +120,7 @@ RoutingExperiment::RoutingExperiment ()
     packetsReceived (0),
     m_CSVfileName ("manet-routing.output.csv"),
     m_traceMobility (false),
-    m_protocol (2) // AODV
+    m_protocol (1) // AODV
 {
 }
 
@@ -217,7 +217,7 @@ main (int argc, char *argv[])
   std::endl;
   out.close ();
 
-  int nSinks = 10;
+  int nSinks = 1;
   double txp = 7.5;
 
   experiment.Run (nSinks, txp, CSVfileName);
@@ -231,9 +231,9 @@ RoutingExperiment::Run (int nSinks, double txp, std::string CSVfileName)
   m_txp = txp;
   m_CSVfileName = CSVfileName;
 
-  int nWifis = 50;
+  int nWifis = 2;
 
-  double TotalTime = 200.0;
+  double TotalTime = 2000.0;
   std::string rate ("2048bps");
   std::string phyMode ("DsssRate11Mbps");
   std::string tr_name ("manet-routing-compare");
@@ -277,8 +277,8 @@ RoutingExperiment::Run (int nSinks, double txp, std::string CSVfileName)
 
   ObjectFactory pos;
   pos.SetTypeId ("ns3::RandomRectanglePositionAllocator");
-  pos.Set ("X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=300.0]"));
-  pos.Set ("Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=1500.0]"));
+  pos.Set ("X", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=30.0]"));
+  pos.Set ("Y", StringValue ("ns3::UniformRandomVariable[Min=0.0|Max=100.0]"));
 
   Ptr<PositionAllocator> taPositionAlloc = pos.Create ()->GetObject<PositionAllocator> ();
   streamIndex += taPositionAlloc->AssignStreams (streamIndex);
@@ -386,6 +386,7 @@ AnimationInterface anim (tr_name + ".xml");
   wifiPhy.EnableAsciiAll (osw);
   //AsciiTraceHelper ascii;
   MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
+  wifiPhy.EnablePcapAll (tr_name);
 
   Ptr<FlowMonitor> flowmon;
   FlowMonitorHelper flowmonHelper;

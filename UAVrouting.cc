@@ -57,23 +57,22 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("UAVrouting");
 
-
+void setupMobility(double, double,double,NodeContainer,uint32_t);
+void setupRoutingProtocol(uint32_t,NodeContainer);
+YansWifiPhyHelper setupWifiPhy(double);
+Ipv4InterfaceContainer setupIP(NetDeviceContainer);
+void setupConnection(int,int,double,uint16_t,Ipv4InterfaceContainer,NodeContainer);
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
-void setupMobility(double, double,double,NodeContainer,uint32_t);
-void setuproutingProtocol(uint32_t,NodeContainer);
-YansWifiPhyHelper setupWifiPhy(double);
-Ipv4InterfaceContainer IPsetup(NetDeviceContainer);
-void setupConnection(int,double,int,uint16_t,Ipv4InterfaceContainer,NodeContainer);
-
 
 // The number of bytes to send in this simulation.
-static const uint32_t totalTxBytes = 200000;
+static const uint32_t totalTxBytes = 3000000;
 static uint32_t currentTxBytes = 0;
 // Perform series of 1040 byte writes (this is a multiple of 26 since
 // we want to detect data splicing in the output stream)
 static const uint32_t writeSize = 1040;
 uint8_t data[writeSize];
+
 
 // These are for starting the writing process, and handling the sending 
 // socket's notification upcalls (events).  These two together more or less
@@ -88,18 +87,18 @@ static void CwndTracer (uint32_t oldval, uint32_t newval)
 //###################### main() ###########################
 int main (int argc, char *argv[])
 {
-  //routingComparison test;
+  
   int nWifi=5;
   int nSinks=2; 
   double txp=7.5;
   double totalTime=100;
   uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
   uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
-  double X=150.0;
-  double Y=300.0;
-  double Z=300.0;
+  double X=300.0;
+  double Y=50.0;
+  double Z=10.0;
   std::string phyMode ("DsssRate11Mbps");
-  uint16_t Port = 50000;
+  uint16_t port = 50000;
 
   const std::string rate="2048bps";
 
@@ -109,6 +108,8 @@ int main (int argc, char *argv[])
   
   CommandLine cmd;
   cmd.Parse (argc, argv);
+  
+  NS_LOG_UNCOND ("Starting the simulation...");
 
   // initialize the tx buffer.
   for(uint32_t i = 0; i < writeSize; ++i)
@@ -116,7 +117,7 @@ int main (int argc, char *argv[])
       char m = toascii (97 + i % 26);
       data[i] = m;
     }
-
+    
   // Here, we will explicitly create the nodes. 
   // This will be used to install the network
   // interfaces and connect them with a channel.
@@ -136,25 +137,26 @@ int main (int argc, char *argv[])
   //setup wifi physical attributes
   YansWifiPhyHelper wifiPhy; 
   wifiPhy= setupWifiPhy(txp);  
-
+  NS_LOG_UNCOND ("Setting up wifi physical attributes...");
   //Set Non-unicastMode rate to unicast mode
   Config::SetDefault ("ns3::WifiRemoteStationManager::NonUnicastMode",StringValue (phyMode));
 
   // Add a mac 
   WifiMacHelper wifiMac;
   wifiMac.SetType ("ns3::AdhocWifiMac");  
-
+  
   NetDeviceContainer adhocDevices = wifi.Install (wifiPhy, wifiMac, adhocNodes);
 
   //setup mobility
   setupMobility(X,Y,Z,adhocNodes,mobilityModel);  
-
+  NS_LOG_UNCOND ("Setting up Mobility...");
   //setup routing protocol
-  setuproutingProtocol(routingProtocol,adhocNodes);
-
+  setupRoutingProtocol(routingProtocol,adhocNodes);
+  NS_LOG_UNCOND ("Setting up routing protocol...");
   // Later, we add IP addresses.
   Ipv4InterfaceContainer adhocInterfaces;
-  adhocInterfaces=IPsetup(adhocDevices);
+  adhocInterfaces=setupIP(adhocDevices);
+  NS_LOG_UNCOND ("Setting up IP address for nodes...");
   
   ///////////////////////////////////////////////////////////////////////////
   // Simulation 1
@@ -167,9 +169,10 @@ int main (int argc, char *argv[])
   ///////////////////////////////////////////////////////////////////////////
 
   // Create the connections...
+  
   for (int i = 0; i < nSinks; i++)
-     {
-        setupConnection(i,totalTime,nSinks,Port,adhocInterfaces,adhocNodes);
+     {        
+        setupConnection(i,i+nSinks,totalTime,port,adhocInterfaces,adhocNodes);
      }
   // One can toggle the comment for the following line on or off to see  
   // the effects of finite send buffer modelling.  One can also change 
@@ -199,7 +202,9 @@ int main (int argc, char *argv[])
   
   flowmon->SerializeToXmlFile ((tr_name + ".flowmon").c_str(), true, true);
 
+  NS_LOG_UNCOND ("Ending the simulation...");
   Simulator::Destroy ();
+
   
 }
 //###################### end of main() ###########################
@@ -208,48 +213,65 @@ int main (int argc, char *argv[])
 void
 StartFlow (Ptr<Socket> localSocket,
                 Ipv4Address servAddress,
-                uint16_t Port)
+                uint16_t port)
 {
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
-//-----------------------------------------------------------------------------
 //begin implementation of sending "Application"
+  //std::stringstream ssFlow;
   NS_LOG_LOGIC ("Starting flow at time " <<  Simulator::Now ().GetSeconds ());
-  localSocket->Connect (InetSocketAddress (servAddress, Port)); //connect
-
+  localSocket->Connect (InetSocketAddress (servAddress, port)); //connect
+  //ssFlow<<"Starting flow at time "<<Simulator::Now ().GetSeconds ()<<" sec..."<<std::endl;
+  
   // tell the tcp implementation to call WriteUntilBufferFull again
   // if we blocked and new tx buffer space becomes available
+//ssFlow<<"Fetching WriteUntilBufferFull with callback at time "<<Simulator::Now ().GetSeconds ()<<" sec...";
+  //NS_LOG_UNCOND (ssFlow.str ());
   localSocket->SetSendCallback (MakeCallback (&WriteUntilBufferFull));
+  //NS_LOG_UNCOND ("Directly");
   WriteUntilBufferFull (localSocket, localSocket->GetTxAvailable ());
+  
 }
 
 void
 WriteUntilBufferFull (Ptr<Socket> localSocket, uint32_t txSpace)
-{
+{ 
+  std::stringstream ssFlow;
+  //ssFlow<<"New WHILE"<<std::endl;
   while (currentTxBytes < totalTxBytes && localSocket->GetTxAvailable () > 0) 
-    {
+    { 
+     // ssFlow<<"TxAvailable= "<<localSocket->GetTxAvailable ()<<std::endl;     
       uint32_t left = totalTxBytes - currentTxBytes;
       uint32_t dataOffset = currentTxBytes % writeSize;
       uint32_t toWrite = writeSize - dataOffset;
       toWrite = std::min (toWrite, left);
       toWrite = std::min (toWrite, localSocket->GetTxAvailable ());
       int amountSent = localSocket->Send (&data[dataOffset], toWrite, 0);
+ //     ssFlow<<"time: "<<Simulator::Now ().GetSeconds ()<<" TxBytes= "<<currentTxBytes<<", toWrite= "<<toWrite<< ", amountSent= "<<amountSent<<",   TxAvailable= "<<localSocket->GetTxAvailable ()<<std::endl;
       if(amountSent < 0)
         {
           // we will be called again when new tx space becomes available.
+          //ssFlow<<"Negative amount sent"<<std::endl;
+          //NS_LOG_UNCOND (ssFlow.str ());   
           return;  
         }
       currentTxBytes += amountSent;
     }
-  localSocket->Close ();
+ // ssFlow<<"time: "<<Simulator::Now ().GetSeconds ()<<" the connection is closing, "<<std::endl;
+ 
+  if (currentTxBytes==totalTxBytes)
+     {
+        ssFlow<<totalTxBytes;
+        NS_LOG_UNCOND (ssFlow.str ());
+        localSocket->Close ();
+     }
 }
 
 void
 setupMobility(double X, double Y, double Z, NodeContainer adhocNodes,uint32_t mobilityModel)
 {
+NS_LOG_FUNCTION("setupMobility");
 MobilityHelper mobilityAdhoc;
 
-  int64_t streamIndex = 0; // used to get consistent mobility across scenarios
+  int64_t streamIndex = 1; // used to get consistent mobility across scenarios
 
   ObjectFactory pos;
   std::stringstream sX;
@@ -258,7 +280,7 @@ MobilityHelper mobilityAdhoc;
   sX<<"ns3::UniformRandomVariable[Min=0.0|Max="<<X<<"]";
   sY<<"ns3::UniformRandomVariable[Min=0.0|Max="<<Y<<"]";
   sZ<<"ns3::UniformRandomVariable[Min=0.0|Max="<<Z<<"]";
-  //pos.SetTypeId ("ns3::RandomRectanglePositionAllocator");
+  
   pos.SetTypeId ("ns3::RandomBoxPositionAllocator");
   pos.Set ("X", StringValue (sX.str()));
   pos.Set ("Y", StringValue (sY.str()));
@@ -348,8 +370,9 @@ mobilityAdhoc.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   NS_UNUSED (streamIndex); // From this point, streamIndex is unused
 }
 
-void setuproutingProtocol(uint32_t protocol,NodeContainer adhocNodes)
+void setupRoutingProtocol(uint32_t protocol,NodeContainer adhocNodes)
 {
+NS_LOG_FUNCTION("setupMobility");
 AodvHelper aodv;
   OlsrHelper olsr;
   DsdvHelper dsdv;
@@ -411,7 +434,7 @@ setupWifiPhy(double txp)
 }
 
 Ipv4InterfaceContainer 
-IPsetup(NetDeviceContainer adhocDevices)
+setupIP(NetDeviceContainer adhocDevices)
 {
   Ipv4AddressHelper addressAdhoc;
   addressAdhoc.SetBase ("10.1.1.0", "255.255.255.0");
@@ -421,23 +444,23 @@ IPsetup(NetDeviceContainer adhocDevices)
 }
 
 void 
-setupConnection(int i,double totalTime,int nSinks,uint16_t  Port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
+setupConnection(int source,int destination,double totalTime,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
 {
-  PacketSinkHelper sink ("ns3::TcpSocketFactory",
-                         InetSocketAddress (Ipv4Address::GetAny (), Port));
+ PacketSinkHelper sink ("ns3::TcpSocketFactory",
+                         InetSocketAddress (Ipv4Address::GetAny (), port));
 
-  ApplicationContainer apps = sink.Install (adhocNodes.Get (i));
+  ApplicationContainer apps = sink.Install (adhocNodes.Get (destination));
   apps.Start (Seconds (0.0));
   apps.Stop (Seconds (totalTime));
 
-  // Create a source to send packets from n0.  Instead of a full Application
+  // Create a source to send packets.  Instead of a full Application
   // and the helper APIs you might see in other example files, this example
   // will use sockets directly and register some socket callbacks as a sending
   // "Application".
 
   // Create and bind the socket...
   Ptr<Socket> localSocket =
-  Socket::CreateSocket (adhocNodes.Get (nSinks+i), TcpSocketFactory::GetTypeId ());
+  Socket::CreateSocket (adhocNodes.Get (source), TcpSocketFactory::GetTypeId ());
   localSocket->Bind ();
 
   // Trace changes to the congestion window
@@ -446,7 +469,5 @@ setupConnection(int i,double totalTime,int nSinks,uint16_t  Port,Ipv4InterfaceCo
   // ...and schedule the sending "Application"; This is similar to what an 
   // ns3::Application subclass would do internally.
   Simulator::ScheduleNow (&StartFlow, localSocket,
-                       adhocInterfaces.GetAddress (i), Port);
+                       adhocInterfaces.GetAddress (destination), port);
 }
-
-
