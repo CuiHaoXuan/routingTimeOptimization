@@ -61,24 +61,35 @@ void setupMobility(double, double,double,NodeContainer,uint32_t);
 void setupRoutingProtocol(uint32_t,NodeContainer);
 YansWifiPhyHelper setupWifiPhy(double);
 Ipv4InterfaceContainer setupIP(NetDeviceContainer);
-void setupConnection(int,int,double,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+void setupConnectionSocket(int,int,double,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+void setupConnectionOnOff(int,int,double,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+void setupConnectionOnOffSocket(int,int,double,uint16_t,Ipv4InterfaceContainer,NodeContainer);
 void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
 void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
+void SetupPacketReceive (Ipv4Address, Ptr<Node>,Ipv4Address);
+void ReceivePacket (Ptr<Socket>);
+void accept(Ptr<Socket> ,const ns3::Address&);
+
+
 
 // The number of bytes to send in this simulation.
-static const uint32_t totalTxBytes = 10000000;
+static const uint32_t totalTxBytes = 3000000;
 static uint32_t currentTxBytes = 0;
-static uint32_t currentRXBytes = 0;
+static uint32_t currentRxBytes = 0;
+static uint32_t packetsReceived=0;
 // Perform series of 1040 byte writes (this is a multiple of 26 since
 // we want to detect data splicing in the output stream)
 static const uint32_t writeSize = 1040;
+static uint16_t port = 50000;
 uint8_t data[writeSize];
+const std::string rate="2048bps";
 
 
 // These are for starting the writing process, and handling the sending 
 // socket's notification upcalls (events).  These two together more or less
 // implement a sending "Application", although not a proper ns3::Application
 // subclass.
+
 
 static void CwndTracer (uint32_t oldval, uint32_t newval)
 {
@@ -89,22 +100,22 @@ static void CwndTracer (uint32_t oldval, uint32_t newval)
 int main (int argc, char *argv[])
 {
   
-  int nWifi=50;
-  int nSinks=2; 
+  int nWifi=5;
+  int nSinks=1; 
   double txp=7.5;
-  double totalTime=500;
+  double totalTime=1000;
   uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
   uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
-  double X=300.0;
-  double Y=1500.0;
+  double X=100.0;
+  double Y=50.0;
   double Z=10.0;
   std::string phyMode ("DsssRate11Mbps");
-  uint16_t port = 50000;
+  
 
-  const std::string rate="2048bps";
+  ns3::PacketMetadata::Enable (); 
 
   std::stringstream ss;
-  ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks;
+  ss<<"traceFiles/testUAV"<<nWifi<<"Con"<<nSinks;
   std::string tr_name (ss.str ());
   
   CommandLine cmd;
@@ -169,12 +180,17 @@ int main (int argc, char *argv[])
   //
   ///////////////////////////////////////////////////////////////////////////
 
+
+
   // Create the connections...
+  
   
   for (int i = 0; i < nSinks; i++)
      {        
-        setupConnection(i,i+nSinks,totalTime,port,adhocInterfaces,adhocNodes);
+        setupConnectionSocket(i,i+nSinks,totalTime,port,adhocInterfaces,adhocNodes);
      }
+
+
   // One can toggle the comment for the following line on or off to see  
   // the effects of finite send buffer modelling.  One can also change 
   // the size of said buffer.
@@ -209,7 +225,50 @@ int main (int argc, char *argv[])
   
 }
 //###################### end of main() ###########################
+void accept(Ptr<Socket> socket,const ns3::Address& from)
+{
 
+    std::cout<<"Connection accepted"<< std::endl;
+    socket->SetRecvCallback (MakeCallback (&ReceivePacket));
+
+}
+
+void ReceivePacket (Ptr<Socket> socket)
+ {
+    
+   Ptr<Packet> packet = socket->Recv ();
+   packetsReceived+=1;
+   SocketIpTosTag tosTag;
+   if (packet->RemovePacketTag (tosTag))
+     {
+       NS_LOG_INFO (" TOS = " << (uint32_t)tosTag.GetTos ());
+     }
+   SocketIpTtlTag ttlTag;
+   if (packet->RemovePacketTag (ttlTag))
+     {
+       NS_LOG_INFO (" TTL = " << (uint32_t)ttlTag.GetTtl ());
+     }
+     if(packetsReceived==400)
+       {
+          //socket->Close();
+        }
+     std::stringstream ssFlow;
+     ssFlow<<"No. of received packets= "<<packetsReceived<<" and No. of received Bytes= "<<currentRxBytes;
+     //NS_LOG_UNCOND (ssFlow.str());
+ }
+
+void
+SetupPacketReceive (Ipv4Address addr, Ptr<Node> node,Ipv4Address sourceAddress)
+{
+
+  TypeId tid = TypeId::LookupByName ("ns3::TcpSocketFactory");
+  Ptr<Socket> sink = Socket::CreateSocket (node, tid);
+  InetSocketAddress local = InetSocketAddress (addr, port);
+  sink->Bind (local);
+  sink->Connect (InetSocketAddress (sourceAddress, port));
+  sink->SetRecvCallback (MakeCallback (&ReceivePacket));
+  ReceivePacket(sink);
+}
 
 void
 StartFlow (Ptr<Socket> localSocket,
@@ -217,17 +276,11 @@ StartFlow (Ptr<Socket> localSocket,
                 uint16_t port)
 {
 //begin implementation of sending "Application"
-  //std::stringstream ssFlow;
-  NS_LOG_LOGIC ("Starting flow at time " <<  Simulator::Now ().GetSeconds ());
-  localSocket->Connect (InetSocketAddress (servAddress, port)); //connect
-  //ssFlow<<"Starting flow at time "<<Simulator::Now ().GetSeconds ()<<" sec..."<<std::endl;
-  
+    localSocket->Connect (InetSocketAddress (servAddress, port)); //connect
   // tell the tcp implementation to call WriteUntilBufferFull again
   // if we blocked and new tx buffer space becomes available
-//ssFlow<<"Fetching WriteUntilBufferFull with callback at time "<<Simulator::Now ().GetSeconds ()<<" sec...";
-  //NS_LOG_UNCOND (ssFlow.str ());
+
   localSocket->SetSendCallback (MakeCallback (&WriteUntilBufferFull));
-  //NS_LOG_UNCOND ("Directly");
   WriteUntilBufferFull (localSocket, localSocket->GetTxAvailable ());
   
 }
@@ -236,18 +289,15 @@ void
 WriteUntilBufferFull (Ptr<Socket> localSocket, uint32_t txSpace)
 { 
   std::stringstream ssFlow;
-  //ssFlow<<"New WHILE"<<std::endl;
   while (currentTxBytes < totalTxBytes && localSocket->GetTxAvailable () > 0) 
     { 
-     // ssFlow<<"TxAvailable= "<<localSocket->GetTxAvailable ()<<std::endl; 
-      currentRXBytes+=currentRXBytes;    
+      currentRxBytes+=currentRxBytes;    
       uint32_t left = totalTxBytes - currentTxBytes;
       uint32_t dataOffset = currentTxBytes % writeSize;
       uint32_t toWrite = writeSize - dataOffset;
       toWrite = std::min (toWrite, left);
       toWrite = std::min (toWrite, localSocket->GetTxAvailable ());
       int amountSent = localSocket->Send (&data[dataOffset], toWrite, 0);
- //     ssFlow<<"time: "<<Simulator::Now ().GetSeconds ()<<" TxBytes= "<<currentTxBytes<<", toWrite= "<<toWrite<< ", amountSent= "<<amountSent<<",   TxAvailable= "<<localSocket->GetTxAvailable ()<<std::endl;
       if(amountSent < 0)
         {
           // we will be called again when new tx space becomes available.
@@ -445,15 +495,60 @@ setupIP(NetDeviceContainer adhocDevices)
   return adhocInterfaces;
 }
 
-void 
-setupConnection(int source,int destination,double totalTime,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
+void
+setupConnectionOnOffSocket(int source,int destination,double totalTime,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
 {
- PacketSinkHelper sink ("ns3::TcpSocketFactory",
-                         InetSocketAddress (Ipv4Address::GetAny (), port));
+  //setup onoff helper
+  Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue ("ns3::TcpNewReno"));
+  Config::SetDefault  ("ns3::OnOffApplication::PacketSize",StringValue ("536"));
+  Config::SetDefault ("ns3::OnOffApplication::DataRate",  StringValue (rate));
+  OnOffHelper onoff1 ("ns3::TcpSocketFactory",Address ());
+  onoff1.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1.0]"));
+  onoff1.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.0]"));
+  //end of onOff setup
 
+  onoff1.SetAttribute ("Remote", AddressValue(InetSocketAddress (adhocInterfaces.GetAddress (destination), port)));
+  
+
+  ApplicationContainer apps; 
+  apps=onoff1.Install (adhocNodes.Get (source));
+  Ptr<UniformRandomVariable> var = CreateObject<UniformRandomVariable> ();
+  apps.Start (Seconds (var->GetValue (0.0,1.0)));
+  apps.Stop (Seconds (totalTime));
+
+// Create and bind the sink socket...
+  TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
+  Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
+  Ptr<Socket> sinkSocket; 
+  sinkSocket = Socket::CreateSocket (adhocNodes.Get (destination), TcpSocketFactory::GetTypeId ());
+  InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), port);
+  sinkSocket->Bind(local);
+  sinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&accept));
+  sinkSocket->Listen();
+  //sinkSocket->SetRecvCallback (MakeCallback (&ReceivePacket));
+  
+}
+
+void 
+setupConnectionSocket(int source,int destination,double totalTime,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
+{
+/*
+  PacketSinkHelper sink ("ns3::TcpSocketFactory",
+                         InetSocketAddress (Ipv4Address::GetAny (), port));
   ApplicationContainer apps = sink.Install (adhocNodes.Get (destination));
   apps.Start (Seconds (0.0));
   apps.Stop (Seconds (totalTime));
+*/
+
+// Create and bind the sink socket...
+  TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
+  Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
+  Ptr<Socket> sinkSocket; 
+  sinkSocket = Socket::CreateSocket (adhocNodes.Get (destination), TcpSocketFactory::GetTypeId ());
+  InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), port);
+  sinkSocket->Bind(local);
+  sinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&accept));
+  sinkSocket->Listen();
 
   // Create a source to send packets.  Instead of a full Application
   // and the helper APIs you might see in other example files, this example
@@ -464,7 +559,7 @@ setupConnection(int source,int destination,double totalTime,uint16_t  port,Ipv4I
   Ptr<Socket> localSocket =
   Socket::CreateSocket (adhocNodes.Get (source), TcpSocketFactory::GetTypeId ());
   localSocket->Bind ();
-
+  //sinkSocket->SetAcceptCallback(true,localSocket,adhocInterfaces.GetAddress (source),MakeCallback (&ReceivePacket),adhocInterfaces.GetAddress (destination));
   // Trace changes to the congestion window
   Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&CwndTracer));
 
@@ -472,4 +567,33 @@ setupConnection(int source,int destination,double totalTime,uint16_t  port,Ipv4I
   // ns3::Application subclass would do internally.
   Simulator::ScheduleNow (&StartFlow, localSocket,
                        adhocInterfaces.GetAddress (destination), port);
+}
+
+void
+setupConnectionOnOff(int source,int destination,double totalTime,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
+{
+  //setup onoff helper
+  //Config::SetDefault ("ns3::TcpL4Protocol::SocketType", StringValue ("ns3::TcpNewReno"));
+  Config::SetDefault  ("ns3::OnOffApplication::PacketSize",StringValue ("536"));
+  Config::SetDefault ("ns3::OnOffApplication::DataRate",  StringValue (rate));
+  OnOffHelper onoff1 ("ns3::TcpSocketFactory",Address ());
+  onoff1.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1.0]"));
+  onoff1.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0.0]"));
+  //end of onOff setup
+
+  PacketSinkHelper sink ("ns3::TcpSocketFactory",
+                         InetSocketAddress (Ipv4Address::GetAny (), port));
+  ApplicationContainer sinkApps = sink.Install (adhocNodes.Get (destination));
+  sinkApps.Start (Seconds (0.0));
+  sinkApps.Stop (Seconds (totalTime));
+//  Ptr<Socket> sink = SetupPacketReceive (adhocInterfaces.GetAddress (destination), adhocNodes.Get (destination));
+  
+  onoff1.SetAttribute ("Remote", AddressValue(InetSocketAddress (adhocInterfaces.GetAddress (destination), port)));
+  
+
+  ApplicationContainer apps; 
+  apps=onoff1.Install (adhocNodes.Get (source));
+  Ptr<UniformRandomVariable> var = CreateObject<UniformRandomVariable> ();
+  apps.Start (Seconds (var->GetValue (0.0,1.0)));
+  apps.Stop (Seconds (totalTime));
 }
