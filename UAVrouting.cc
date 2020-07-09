@@ -61,46 +61,64 @@ void setupMobility(double, double,double,NodeContainer,uint32_t);
 void setupRoutingProtocol(uint32_t,NodeContainer);
 YansWifiPhyHelper setupWifiPhy(double);
 Ipv4InterfaceContainer setupIP(NetDeviceContainer);
-void setupConnection(int,int,double,uint16_t,Ipv4InterfaceContainer,NodeContainer);
-void StartFlow (Ptr<Socket>, Ipv4Address, uint16_t);
-void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
 
-// The number of bytes to send in this simulation.
-static const uint32_t totalTxBytes = 10000000;
-static uint32_t currentTxBytes = 0;
-static uint32_t currentRXBytes = 0;
+static int nWifi=50;
+static int nSinks=2; 
+static double txp=7.5;
+static double totalTime=137;
+static uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
+static uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
+static double X=300.0;
+static double Y=1500.0;
+static double Z=10.0;
+static const uint16_t port = 50000;
+static const uint32_t totalRxBytes = 5000000;
+static Ipv4InterfaceContainer adhocInterfaces;
+static NetDeviceContainer adhocDevices;
+static NodeContainer adhocNodes;
 // Perform series of 1040 byte writes (this is a multiple of 26 since
 // we want to detect data splicing in the output stream)
 static const uint32_t writeSize = 1040;
 uint8_t data[writeSize];
 
-
-// These are for starting the writing process, and handling the sending 
-// socket's notification upcalls (events).  These two together more or less
-// implement a sending "Application", although not a proper ns3::Application
-// subclass.
-
-static void CwndTracer (uint32_t oldval, uint32_t newval)
+class Flow
 {
-  NS_LOG_INFO ("Moving cwnd from " << oldval << " to " << newval);
+public:
+  Flow();
+  void setupConnection(int,int,double,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+
+  double throughput;
+  double FCT;//flow completion time
+  bool successfullyTerminated;
+
+private:
+  uint32_t currentTxBytes;
+  uint32_t currentTxPackets;
+  uint32_t currentRxBytes;
+  uint32_t currentRxPackets;
+
+  void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
+  void accept(Ptr<Socket>,const ns3::Address&);
+  void ReceivePacket (Ptr<Socket>);
+  void CwndTracer (uint32_t , uint32_t );
+};
+
+Flow::Flow()
+  : throughput(0),
+    FCT(0),
+    successfullyTerminated(false),
+    currentTxBytes(0),
+    currentTxPackets(0),
+    currentRxBytes(0),
+    currentRxPackets(0)
+{
 }
 
 //###################### main() ###########################
 int main (int argc, char *argv[])
 {
   
-  int nWifi=50;
-  int nSinks=2; 
-  double txp=7.5;
-  double totalTime=500;
-  uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
-  uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
-  double X=300.0;
-  double Y=1500.0;
-  double Z=10.0;
   std::string phyMode ("DsssRate11Mbps");
-  uint16_t port = 50000;
-
   const std::string rate="2048bps";
 
   std::stringstream ss;
@@ -119,10 +137,10 @@ int main (int argc, char *argv[])
       data[i] = m;
     }
     
+    ns3::PacketMetadata::Enable ();
   // Here, we will explicitly create the nodes. 
   // This will be used to install the network
   // interfaces and connect them with a channel.
-  NodeContainer adhocNodes;
   adhocNodes.Create (nWifi);
 
   // We create the channels first without any IP addressing information
@@ -155,7 +173,6 @@ int main (int argc, char *argv[])
   setupRoutingProtocol(routingProtocol,adhocNodes);
   NS_LOG_UNCOND ("Setting up routing protocol...");
   // Later, we add IP addresses.
-  Ipv4InterfaceContainer adhocInterfaces;
   adhocInterfaces=setupIP(adhocDevices);
   NS_LOG_UNCOND ("Setting up IP address for nodes...");
   
@@ -170,16 +187,19 @@ int main (int argc, char *argv[])
   ///////////////////////////////////////////////////////////////////////////
 
   // Create the connections...
+
+  Flow UAVflow[nSinks];
   
   for (int i = 0; i < nSinks; i++)
      {        
-        setupConnection(i,i+nSinks,totalTime,port,adhocInterfaces,adhocNodes);
+        UAVflow[i].setupConnection(i,i+nSinks,totalTime,port,adhocInterfaces,adhocNodes);
      }
+     
   // One can toggle the comment for the following line on or off to see  
   // the effects of finite send buffer modelling.  One can also change 
   // the size of said buffer.
 
-  //localSocket->SetAttribute("SndBufSize", UintegerValue(4096));
+  //sourceSocket->SetAttribute("SndBufSize", UintegerValue(4096));
 
   //Ask for ASCII and pcap traces of network traffic
   
@@ -204,66 +224,87 @@ int main (int argc, char *argv[])
   flowmon->SerializeToXmlFile ((tr_name + ".flowmon").c_str(), true, true);
 
   NS_LOG_UNCOND ("Ending the simulation...");
+  double throughput=0;
+  double FCT=0;//flow completion time
+  uint8_t count=0;
+  for (int i = 0; i < nSinks; i++)
+     {
+         if(UAVflow[i].successfullyTerminated)
+           {
+              count++;
+              throughput+=UAVflow[i].throughput;
+              FCT+=UAVflow[i].FCT;
+            }
+      }
+  std::cout<<count<< "flow out of total "<<nSinks<<" completed successfully."<<std::endl;
+  std::cout<<"Average throughput: "<<throughput/count<<", Average FCT: "<<FCT/count<<std::endl; 
   Simulator::Destroy ();
 
   
 }
 //###################### end of main() ###########################
 
-
-void
-StartFlow (Ptr<Socket> localSocket,
-                Ipv4Address servAddress,
-                uint16_t port)
+void 
+Flow::CwndTracer (uint32_t oldval, uint32_t newval)
 {
-//begin implementation of sending "Application"
-  //std::stringstream ssFlow;
-  NS_LOG_LOGIC ("Starting flow at time " <<  Simulator::Now ().GetSeconds ());
-  localSocket->Connect (InetSocketAddress (servAddress, port)); //connect
-  //ssFlow<<"Starting flow at time "<<Simulator::Now ().GetSeconds ()<<" sec..."<<std::endl;
-  
-  // tell the tcp implementation to call WriteUntilBufferFull again
-  // if we blocked and new tx buffer space becomes available
-//ssFlow<<"Fetching WriteUntilBufferFull with callback at time "<<Simulator::Now ().GetSeconds ()<<" sec...";
-  //NS_LOG_UNCOND (ssFlow.str ());
-  localSocket->SetSendCallback (MakeCallback (&WriteUntilBufferFull));
-  //NS_LOG_UNCOND ("Directly");
-  WriteUntilBufferFull (localSocket, localSocket->GetTxAvailable ());
-  
+  NS_LOG_INFO ("Moving cwnd from " << oldval << " to " << newval);
 }
 
+void 
+Flow::accept(Ptr<Socket> socket,const ns3::Address& from)
+{
+    socket->SetRecvCallback (MakeCallback (&Flow::ReceivePacket,this));
+}
+
+void 
+Flow::ReceivePacket (Ptr<Socket> socket)
+ {
+
+   Ptr<Packet> packet = socket->Recv ();
+   this->currentRxPackets+=1;
+   this->currentRxBytes+=packet->GetSize ();
+   if(currentRxBytes>=totalRxBytes)
+      {
+         socket->ShutdownRecv();
+         this->successfullyTerminated=true;
+         this->throughput=this->currentTxBytes/this->currentRxBytes;
+         this->FCT=Simulator::Now ().GetSeconds ();
+       }
+   SocketIpTosTag tosTag;
+   if (packet->RemovePacketTag (tosTag))
+     {
+       NS_LOG_INFO (" TOS = " << (uint32_t)tosTag.GetTos ());
+     }
+   SocketIpTtlTag ttlTag;
+   if (packet->RemovePacketTag (ttlTag))
+     {
+       NS_LOG_INFO (" TTL = " << (uint32_t)ttlTag.GetTtl ());
+     }
+ }
+
 void
-WriteUntilBufferFull (Ptr<Socket> localSocket, uint32_t txSpace)
+Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
 { 
-  std::stringstream ssFlow;
-  //ssFlow<<"New WHILE"<<std::endl;
-  while (currentTxBytes < totalTxBytes && localSocket->GetTxAvailable () > 0) 
+  while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0) 
     { 
-     // ssFlow<<"TxAvailable= "<<localSocket->GetTxAvailable ()<<std::endl; 
-      currentRXBytes+=currentRXBytes;    
-      uint32_t left = totalTxBytes - currentTxBytes;
-      uint32_t dataOffset = currentTxBytes % writeSize;
+      uint32_t left = totalRxBytes - this->currentRxBytes;
+      uint32_t dataOffset = this->currentTxBytes % writeSize;
       uint32_t toWrite = writeSize - dataOffset;
       toWrite = std::min (toWrite, left);
-      toWrite = std::min (toWrite, localSocket->GetTxAvailable ());
-      int amountSent = localSocket->Send (&data[dataOffset], toWrite, 0);
- //     ssFlow<<"time: "<<Simulator::Now ().GetSeconds ()<<" TxBytes= "<<currentTxBytes<<", toWrite= "<<toWrite<< ", amountSent= "<<amountSent<<",   TxAvailable= "<<localSocket->GetTxAvailable ()<<std::endl;
+      toWrite = std::min (toWrite, sourceSocket->GetTxAvailable ());
+      int amountSent = sourceSocket->Send (&data[dataOffset], toWrite, 0);
+ 
       if(amountSent < 0)
         {
-          // we will be called again when new tx space becomes available.
-          //ssFlow<<"Negative amount sent"<<std::endl;
-          //NS_LOG_UNCOND (ssFlow.str ());   
           return;  
         }
-      currentTxBytes += amountSent;
+      this->currentTxBytes += amountSent;
+      this->currentTxPackets+=1;
     }
- // ssFlow<<"time: "<<Simulator::Now ().GetSeconds ()<<" the connection is closing, "<<std::endl;
  
-  if (currentTxBytes==totalTxBytes)
+  if (this->currentRxBytes>=totalRxBytes)
      {
-       // ssFlow<<totalTxBytes;
-        //NS_LOG_UNCOND (ssFlow.str ());
-        localSocket->Close ();
+        sourceSocket->Close ();
      }
 }
 
@@ -273,7 +314,7 @@ setupMobility(double X, double Y, double Z, NodeContainer adhocNodes,uint32_t mo
 NS_LOG_FUNCTION("setupMobility");
 MobilityHelper mobilityAdhoc;
 
-  int64_t streamIndex = 1; // used to get consistent mobility across scenarios
+  int64_t streamIndex = 0; // used to get consistent mobility across scenarios
 
   ObjectFactory pos;
   std::stringstream sX;
@@ -446,30 +487,38 @@ setupIP(NetDeviceContainer adhocDevices)
 }
 
 void 
-setupConnection(int source,int destination,double totalTime,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
+Flow::setupConnection(int source,int destination,double totalTime,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
 {
- PacketSinkHelper sink ("ns3::TcpSocketFactory",
-                         InetSocketAddress (Ipv4Address::GetAny (), port));
+ // Create and bind the sink socket...
+  TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
+  Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
+  Ptr<Socket> sinkSocket; 
+  sinkSocket = Socket::CreateSocket (adhocNodes.Get (destination), TcpSocketFactory::GetTypeId ());
+  InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), port);
+  sinkSocket->Bind(local);
+  sinkSocket->Listen();
 
-  ApplicationContainer apps = sink.Install (adhocNodes.Get (destination));
-  apps.Start (Seconds (0.0));
-  apps.Stop (Seconds (totalTime));
 
   // Create a source to send packets.  Instead of a full Application
   // and the helper APIs you might see in other example files, this example
   // will use sockets directly and register some socket callbacks as a sending
   // "Application".
 
-  // Create and bind the socket...
-  Ptr<Socket> localSocket =
+  // Create and bind the source socket...
+  Ptr<Socket> sourceSocket =
   Socket::CreateSocket (adhocNodes.Get (source), TcpSocketFactory::GetTypeId ());
-  localSocket->Bind ();
+  sourceSocket->Bind ();
 
+  sinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
   // Trace changes to the congestion window
-  Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&CwndTracer));
+  Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&Flow::CwndTracer,this));
 
-  // ...and schedule the sending "Application"; This is similar to what an 
-  // ns3::Application subclass would do internally.
-  Simulator::ScheduleNow (&StartFlow, localSocket,
-                       adhocInterfaces.GetAddress (destination), port);
+//begin implementation of sending "Application"
+  NS_LOG_LOGIC ("Starting flow at time " <<  Simulator::Now ().GetSeconds ());
+  sourceSocket->Connect (InetSocketAddress (adhocInterfaces.GetAddress (destination), port)); //connect
+  
+  // tell the tcp implementation to call WriteUntilBufferFull again
+  // if we blocked and new tx buffer space becomes available
+  sourceSocket->SetSendCallback (MakeCallback (&Flow::WriteUntilBufferFull,this));
+  WriteUntilBufferFull (sourceSocket, sourceSocket->GetTxAvailable ()); 
 }
