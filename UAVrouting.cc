@@ -68,6 +68,7 @@ static double txp=7.5;
 static double totalTime=200;
 static uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
 static uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
+static int64_t streamIndex = 2; // used to get consistent mobility across scenarios
 static double X=300.0;
 static double Y=1500.0;
 static double Z=10.0;
@@ -123,8 +124,41 @@ int main (int argc, char *argv[])
   std::string phyMode ("DsssRate11Mbps");
   const std::string rate="2048bps";
 
+  std::string routingName;
+  std::string mobilityName;
+
+switch (routingProtocol)
+    {
+    case 1:
+      routingName = "OLSR";
+      break;
+    case 2:
+      routingName = "AODV";
+      break;
+    case 3:
+      routingName = "DSDV";
+      break;
+    case 4:
+      routingName = "DSR";
+      break;
+    default:
+      NS_FATAL_ERROR ("No such protocol:" << routingProtocol);
+    }
+
+switch (mobilityModel)
+    {
+    case 1:
+      mobilityName = "RWP";
+      break;
+    case 2:
+      mobilityName = "G-M";
+      break;
+    default:
+      NS_FATAL_ERROR ("No such model:" << mobilityModel);
+    }
+
   std::stringstream ss;
-  ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks;
+  ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks<<"_"<<routingName<<"_"<<mobilityName<<"_Ind"<<streamIndex;
   std::string tr_name (ss.str ());
   
   CommandLine cmd;
@@ -319,8 +353,6 @@ setupMobility(double X, double Y, double Z, NodeContainer adhocNodes,uint32_t mo
 NS_LOG_FUNCTION("setupMobility");
 MobilityHelper mobilityAdhoc;
 
-  int64_t streamIndex = 2; // used to get consistent mobility across scenarios
-
   ObjectFactory pos;
   std::stringstream sX;
   std::stringstream sY;
@@ -433,18 +465,14 @@ AodvHelper aodv;
     {
     case 1:
       list.Add (olsr, 100);
-      //protocolName = "OLSR";
       break;
     case 2:
       list.Add (aodv, 100);
-      //protocolName = "AODV";
       break;
     case 3:
       list.Add (dsdv, 100);
-      //protocolName = "DSDV";
       break;
     case 4:
-      //protocolName = "DSR";
       break;
     default:
       NS_FATAL_ERROR ("No such protocol:" << protocol);
