@@ -63,9 +63,9 @@ YansWifiPhyHelper setupWifiPhy(double);
 Ipv4InterfaceContainer setupIP(NetDeviceContainer);
 
 static int nWifi=50;
-static int nSinks=2; 
+static int nSinks=10; 
 static double txp=7.5;
-static double totalTime=137;
+static double totalTime=1000;
 static uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
 static uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
 static double X=300.0;
@@ -223,10 +223,10 @@ int main (int argc, char *argv[])
   
   flowmon->SerializeToXmlFile ((tr_name + ".flowmon").c_str(), true, true);
 
-  NS_LOG_UNCOND ("Ending the simulation...");
+  NS_LOG_UNCOND ("End of simulation...");
   double throughput=0;
   double FCT=0;//flow completion time
-  uint8_t count=0;
+  int count=0;
   for (int i = 0; i < nSinks; i++)
      {
          if(UAVflow[i].successfullyTerminated)
@@ -234,9 +234,10 @@ int main (int argc, char *argv[])
               count++;
               throughput+=UAVflow[i].throughput;
               FCT+=UAVflow[i].FCT;
+              std::cout<<"Flow no. "<<i<<":  Throughput= "<<UAVflow[i].throughput<<",  FCT= "<<UAVflow[i].FCT<<std::endl;
             }
       }
-  std::cout<<count<< "flow out of total "<<nSinks<<" completed successfully."<<std::endl;
+  std::cout<<count<< "flows out of total "<<nSinks<<" flows completed successfully."<<std::endl;
   std::cout<<"Average throughput: "<<throughput/count<<", Average FCT: "<<FCT/count<<std::endl; 
   Simulator::Destroy ();
 
@@ -267,9 +268,9 @@ Flow::ReceivePacket (Ptr<Socket> socket)
       {
          socket->ShutdownRecv();
          this->successfullyTerminated=true;
-         this->throughput=this->currentTxBytes/this->currentRxBytes;
+         this->throughput=double(this->currentRxBytes)/double(this->currentTxBytes);
          this->FCT=Simulator::Now ().GetSeconds ();
-       }
+      }
    SocketIpTosTag tosTag;
    if (packet->RemovePacketTag (tosTag))
      {
