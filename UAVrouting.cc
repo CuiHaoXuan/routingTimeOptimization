@@ -57,21 +57,11 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("UAVrouting");
 
-void setupMobility(double, double,double,NodeContainer,uint32_t);
+void setupMobility(double, double,double,NodeContainer,uint32_t,int64_t);
 void setupRoutingProtocol(uint32_t,NodeContainer);
 YansWifiPhyHelper setupWifiPhy(double);
 Ipv4InterfaceContainer setupIP(NetDeviceContainer);
 
-static int nWifi=50;
-static int nSinks=2; 
-static double txp=7.5;
-static double totalTime=200;
-static uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
-static uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
-static int64_t streamIndex = 2; // used to get consistent mobility across scenarios
-static double X=300.0;
-static double Y=1500.0;
-static double Z=10.0;
 static const uint16_t port = 50000;
 static const uint32_t totalRxBytes = 5000000;
 static Ipv4InterfaceContainer adhocInterfaces;
@@ -86,7 +76,7 @@ class Flow
 {
 public:
   Flow();
-  void setupConnection(int,int,double,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+  void setupConnection(int,int,uint16_t,Ipv4InterfaceContainer,NodeContainer);
 
   double throughput;
   double FCT;//flow completion time
@@ -120,9 +110,37 @@ Flow::Flow()
 //###################### main() ###########################
 int main (int argc, char *argv[])
 {
+  int nSinks=1;
+  int64_t streamIndex = 0; // used to get consistent mobility across scenarios
+  double totalTime=2000;
+  uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
+  uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
+  int nWifi=50;
+  double txp=7.5;
+  double X=300.0;
+  double Y=1500.0;
+  double Z=50.0;
+
   
+  CommandLine cmd;
+  cmd.AddValue("nSinks", "No. of sinks to echo", nSinks);
+  cmd.AddValue("streamIndex", "Stream Index to echo", streamIndex);
+  cmd.AddValue("totalTime", "Total time to echo", totalTime);
+  cmd.AddValue("mobilityModel", "Mobility model to echo (1-RWP, 2-GaussMarkov): ", mobilityModel);
+  cmd.AddValue("routingProtocol", "Routing protocol to echo (1-OLSR, 2-AODV, 3-DSDV, 4-DSR): ", routingProtocol);
+  cmd.AddValue("nWifi","No. of UAVs to echo",nWifi);
+  cmd.AddValue("txp","Transmition power to echo",txp);
+  cmd.AddValue("X","Area width to echo",X);
+  cmd.AddValue("Y","Area Length to echo",Y);
+  cmd.AddValue("Z","Area height to echo",Z);
+  cmd.Parse (argc, argv);
+
   std::string phyMode ("DsssRate11Mbps");
   const std::string rate="2048bps";
+
+  std::stringstream ss;
+  ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks;
+  std::string tr_name (ss.str ());
 
   std::string routingName;
   std::string mobilityName;
@@ -157,12 +175,7 @@ switch (mobilityModel)
       NS_FATAL_ERROR ("No such model:" << mobilityModel);
     }
 
-  std::stringstream ss;
-  ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks<<"_"<<routingName<<"_"<<mobilityName<<"_Ind"<<streamIndex;
-  std::string tr_name (ss.str ());
-  
-  CommandLine cmd;
-  cmd.Parse (argc, argv);
+
   
   NS_LOG_UNCOND ("Starting the simulation...");
 
@@ -203,7 +216,7 @@ switch (mobilityModel)
   NetDeviceContainer adhocDevices = wifi.Install (wifiPhy, wifiMac, adhocNodes);
 
   //setup mobility
-  setupMobility(X,Y,Z,adhocNodes,mobilityModel);  
+  setupMobility(X,Y,Z,adhocNodes,mobilityModel,streamIndex);  
   NS_LOG_UNCOND ("Setting up Mobility...");
   //setup routing protocol
   setupRoutingProtocol(routingProtocol,adhocNodes);
@@ -228,7 +241,7 @@ switch (mobilityModel)
   
   for (int i = 0; i < nSinks; i++)
      {        
-        UAVflow[i].setupConnection(i,i+nSinks,totalTime,port,adhocInterfaces,adhocNodes);
+        UAVflow[i].setupConnection(i*2,i*2+1,port,adhocInterfaces,adhocNodes);
      }
      
   // One can toggle the comment for the following line on or off to see  
@@ -273,10 +286,10 @@ switch (mobilityModel)
               std::cout<<"Flow no. "<<i+1<<":  Throughput= "<<UAVflow[i].throughput<<",  FCT= "<<UAVflow[i].FCT<<std::endl;
             }
       }
-  std::cout<<count<< "flows out of total "<<nSinks<<" flows completed successfully."<<std::endl;
+  std::cout<<count<< " flows out of total "<<nSinks<<" flows completed successfully."<<std::endl;
   std::cout<<"Average throughput: "<<throughput/count<<", Average FCT: "<<FCT/count<<std::endl; 
   Simulator::Destroy ();
-
+return count;
   
 }
 //###################### end of main() ###########################
@@ -305,8 +318,8 @@ Flow::ReceivePacket (Ptr<Socket> socket)
          sourceSocket->Close ();
          socket->ShutdownRecv();
          this->successfullyTerminated=true;
-         this->throughput=double(this->currentRxBytes)/double(this->currentTxBytes);
          this->FCT=Simulator::Now ().GetSeconds ();
+         this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps 
          std::cout<<"currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<std::endl;
       }
    SocketIpTosTag tosTag;
@@ -348,7 +361,7 @@ Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
 }
 
 void
-setupMobility(double X, double Y, double Z, NodeContainer adhocNodes,uint32_t mobilityModel)
+setupMobility(double X, double Y, double Z, NodeContainer adhocNodes,uint32_t mobilityModel,int64_t streamIndex)
 {
 NS_LOG_FUNCTION("setupMobility");
 MobilityHelper mobilityAdhoc;
@@ -520,7 +533,7 @@ setupIP(NetDeviceContainer adhocDevices)
 }
 
 void 
-Flow::setupConnection(int source,int destination,double totalTime,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
+Flow::setupConnection(int source,int destination,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
 {
  // Create and bind the sink socket...
   TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");

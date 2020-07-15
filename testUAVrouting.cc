@@ -57,19 +57,15 @@ using namespace ns3;
 
 NS_LOG_COMPONENT_DEFINE ("UAVrouting");
 
-void setupMobility(double, double,double,NodeContainer,uint32_t);
+void setupMobility(double, double,double,NodeContainer,uint32_t,int64_t);
 void setupRoutingProtocol(uint32_t,NodeContainer);
 YansWifiPhyHelper setupWifiPhy(double);
 Ipv4InterfaceContainer setupIP(NetDeviceContainer);
 
-static int nWifi=50;
-static int nSinks=2; 
+static int nWifi=2;
 static double txp=7.5;
-static double totalTime=137;
-static uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
-static uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
-static double X=300.0;
-static double Y=1500.0;
+static double X=50.0;
+static double Y=10.0;
 static double Z=10.0;
 static const uint16_t port = 50000;
 static const uint32_t totalRxBytes = 5000000;
@@ -85,12 +81,19 @@ class Flow
 {
 public:
   Flow();
-  void setupConnection(int,int,double,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+  void setupConnection(int,int,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+
+  double throughput;
+  double FCT;//flow completion time
+  bool successfullyTerminated;
+
 private:
   uint32_t currentTxBytes;
   uint32_t currentTxPackets;
   uint32_t currentRxBytes;
   uint32_t currentRxPackets;
+  Ptr<Socket> sourceSocket;
+  Ptr<Socket> sinkSocket;
 
   void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
   void accept(Ptr<Socket>,const ns3::Address&);
@@ -99,30 +102,77 @@ private:
 };
 
 Flow::Flow()
-  : currentTxBytes(0),
+  : throughput(0),
+    FCT(0),
+    successfullyTerminated(false),
+    currentTxBytes(0),
     currentTxPackets(0),
     currentRxBytes(0),
     currentRxPackets(0)
 {
 }
 
-
-
 //###################### main() ###########################
 int main (int argc, char *argv[])
 {
+  int nSinks=1;
+  int64_t streamIndex = 0; // used to get consistent mobility across scenarios
+  double totalTime=2000;
+  uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
+  uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
+  
+  CommandLine cmd;
+  cmd.AddValue("nSinks", "No. of sinks to echo", nSinks);
+  cmd.AddValue("streamIndex", "Stream Index to echo", streamIndex);
+  cmd.AddValue("totalTime", "Total time to echo", totalTime);
+  cmd.AddValue("mobilityModel", "Mobility model to echo (1-RWP, 2-GaussMarkov): ", mobilityModel);
+  cmd.AddValue("routingProtocol", "Routing protocol to echo (1-OLSR, 2-AODV, 3-DSDV, 4-DSR): ", routingProtocol);
+  cmd.Parse (argc, argv);
+
   std::string phyMode ("DsssRate11Mbps");
   const std::string rate="2048bps";
 
   std::stringstream ss;
-  ss<<"traceFiles/testUAV"<<nWifi<<"Con"<<nSinks;
+  ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks;
   std::string tr_name (ss.str ());
-  
-  CommandLine cmd;
-  cmd.Parse (argc, argv);
+
+  std::string routingName;
+  std::string mobilityName;
+
+switch (routingProtocol)
+    {
+    case 1:
+      routingName = "OLSR";
+      break;
+    case 2:
+      routingName = "AODV";
+      break;
+    case 3:
+      routingName = "DSDV";
+      break;
+    case 4:
+      routingName = "DSR";
+      break;
+    default:
+      NS_FATAL_ERROR ("No such protocol:" << routingProtocol);
+    }
+
+switch (mobilityModel)
+    {
+    case 1:
+      mobilityName = "RWP";
+      break;
+    case 2:
+      mobilityName = "G-M";
+      break;
+    default:
+      NS_FATAL_ERROR ("No such model:" << mobilityModel);
+    }
+
+
   
   NS_LOG_UNCOND ("Starting the simulation...");
-ns3::PacketMetadata::Enable ();
+
   // initialize the tx buffer.
   for(uint32_t i = 0; i < writeSize; ++i)
     {
@@ -130,10 +180,10 @@ ns3::PacketMetadata::Enable ();
       data[i] = m;
     }
     
+    ns3::PacketMetadata::Enable ();
   // Here, we will explicitly create the nodes. 
   // This will be used to install the network
   // interfaces and connect them with a channel.
-  
   adhocNodes.Create (nWifi);
 
   // We create the channels first without any IP addressing information
@@ -157,16 +207,15 @@ ns3::PacketMetadata::Enable ();
   WifiMacHelper wifiMac;
   wifiMac.SetType ("ns3::AdhocWifiMac");  
   
-  adhocDevices = wifi.Install (wifiPhy, wifiMac, adhocNodes);
+  NetDeviceContainer adhocDevices = wifi.Install (wifiPhy, wifiMac, adhocNodes);
 
   //setup mobility
-  setupMobility(X,Y,Z,adhocNodes,mobilityModel);  
+  setupMobility(X,Y,Z,adhocNodes,mobilityModel,streamIndex);  
   NS_LOG_UNCOND ("Setting up Mobility...");
   //setup routing protocol
   setupRoutingProtocol(routingProtocol,adhocNodes);
   NS_LOG_UNCOND ("Setting up routing protocol...");
   // Later, we add IP addresses.
-  
   adhocInterfaces=setupIP(adhocDevices);
   NS_LOG_UNCOND ("Setting up IP address for nodes...");
   
@@ -182,12 +231,13 @@ ns3::PacketMetadata::Enable ();
 
   // Create the connections...
 
-Flow UAVflow[nSinks];
+  Flow UAVflow[nSinks];
   
   for (int i = 0; i < nSinks; i++)
      {        
-        UAVflow[i].setupConnection(i,i+nSinks,totalTime,port,adhocInterfaces,adhocNodes);
+        UAVflow[i].setupConnection(i,i+nSinks,port,adhocInterfaces,adhocNodes);
      }
+     
   // One can toggle the comment for the following line on or off to see  
   // the effects of finite send buffer modelling.  One can also change 
   // the size of said buffer.
@@ -204,7 +254,7 @@ Flow UAVflow[nSinks];
   MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
 
   AnimationInterface anim (tr_name+".xml");
-  anim.SetMaxPktsPerTraceFile (2000000);
+  anim.SetMaxPktsPerTraceFile (200000000);
 
   FlowMonitorHelper flowmonHelper;
   flowmon = flowmonHelper.InstallAll (); 
@@ -216,16 +266,27 @@ Flow UAVflow[nSinks];
   
   flowmon->SerializeToXmlFile ((tr_name + ".flowmon").c_str(), true, true);
 
-  NS_LOG_UNCOND ("Ending the simulation...");
+  NS_LOG_UNCOND ("End of simulation...");
+  double throughput=0;
+  double FCT=0;//flow completion time
+  int count=0;
+  for (int i = 0; i < nSinks; i++)
+     {
+         if(UAVflow[i].successfullyTerminated)
+           {
+              count++;
+              throughput+=UAVflow[i].throughput;
+              FCT+=UAVflow[i].FCT;
+              std::cout<<"Flow no. "<<i+1<<":  Throughput= "<<UAVflow[i].throughput<<",  FCT= "<<UAVflow[i].FCT<<std::endl;
+            }
+      }
+  std::cout<<count<< " flows out of total "<<nSinks<<" flows completed successfully."<<std::endl;
+  std::cout<<"Average throughput: "<<throughput/count<<", Average FCT: "<<FCT/count<<std::endl; 
   Simulator::Destroy ();
-
+return count;
   
 }
 //###################### end of main() ###########################
-// These are for starting the writing process, and handling the sending 
-// socket's notification upcalls (events).  These two together more or less
-// implement a sending "Application", although not a proper ns3::Application
-// subclass.
 
 void 
 Flow::CwndTracer (uint32_t oldval, uint32_t newval)
@@ -247,9 +308,14 @@ Flow::ReceivePacket (Ptr<Socket> socket)
    this->currentRxPackets+=1;
    this->currentRxBytes+=packet->GetSize ();
    if(currentRxBytes>=totalRxBytes)
-      {
+      {   
+         sourceSocket->Close ();
          socket->ShutdownRecv();
-       }
+         this->successfullyTerminated=true;
+         this->throughput=double(this->currentRxBytes)/double(this->currentTxBytes);
+         this->FCT=Simulator::Now ().GetSeconds ();
+         std::cout<<"currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<std::endl;
+      }
    SocketIpTosTag tosTag;
    if (packet->RemovePacketTag (tosTag))
      {
@@ -289,12 +355,10 @@ Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
 }
 
 void
-setupMobility(double X, double Y, double Z, NodeContainer adhocNodes,uint32_t mobilityModel)
+setupMobility(double X, double Y, double Z, NodeContainer adhocNodes,uint32_t mobilityModel,int64_t streamIndex)
 {
 NS_LOG_FUNCTION("setupMobility");
 MobilityHelper mobilityAdhoc;
-
-  int64_t streamIndex = 0; // used to get consistent mobility across scenarios
 
   ObjectFactory pos;
   std::stringstream sX;
@@ -408,18 +472,14 @@ AodvHelper aodv;
     {
     case 1:
       list.Add (olsr, 100);
-      //protocolName = "OLSR";
       break;
     case 2:
       list.Add (aodv, 100);
-      //protocolName = "AODV";
       break;
     case 3:
       list.Add (dsdv, 100);
-      //protocolName = "DSDV";
       break;
     case 4:
-      //protocolName = "DSR";
       break;
     default:
       NS_FATAL_ERROR ("No such protocol:" << protocol);
@@ -467,12 +527,12 @@ setupIP(NetDeviceContainer adhocDevices)
 }
 
 void 
-Flow::setupConnection(int source,int destination,double totalTime,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
+Flow::setupConnection(int source,int destination,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
 {
  // Create and bind the sink socket...
   TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
   Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
-  Ptr<Socket> sinkSocket; 
+  //Ptr<Socket> sinkSocket; 
   sinkSocket = Socket::CreateSocket (adhocNodes.Get (destination), TcpSocketFactory::GetTypeId ());
   InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), port);
   sinkSocket->Bind(local);
@@ -485,8 +545,8 @@ Flow::setupConnection(int source,int destination,double totalTime,uint16_t  port
   // "Application".
 
   // Create and bind the source socket...
-  Ptr<Socket> sourceSocket =
-  Socket::CreateSocket (adhocNodes.Get (source), TcpSocketFactory::GetTypeId ());
+  //Ptr<Socket> sourceSocket;
+  sourceSocket = Socket::CreateSocket (adhocNodes.Get (source), TcpSocketFactory::GetTypeId ());
   sourceSocket->Bind ();
 
   sinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
