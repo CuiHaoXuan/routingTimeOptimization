@@ -354,12 +354,22 @@ if (socket->GetNode()->GetId()==sink)
       if(currentRxBytes>=totalRxBytes)
          {   
             mainSourceSocket->Close ();
+            for (int i=pathLen-3;i>=0;i--)
+                {
+                   sinkSocket[i]->ShutdownRecv();
+                   sourceSocket[i]->Close();
+                }
             socket->ShutdownRecv();
+            mainSourceSocket->Close();
             this->successfullyTerminated=true;
             this->FCT=Simulator::Now ().GetSeconds ();
             this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps 
             std::cout<<"currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<std::endl;
          }
+    }
+else if (successfullyTerminated)
+    {
+      socket->ShutdownRecv();
     }
 else
     {
@@ -612,8 +622,8 @@ Flow::setupConnection(uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,Node
   
          // tell the tcp implementation to call WriteUntilBufferFull again
          // if we blocked and new tx buffer space becomes available
-         sourceSocket[i]->SetSendCallback (MakeCallback (&Flow::WriteUntilBufferFull,this));
-         WriteUntilBufferFull (sourceSocket[i], sourceSocket[i]->GetTxAvailable ());    
+         //sourceSocket[i]->SetSendCallback (MakeCallback (&Flow::WriteUntilBufferFull,this));
+         //WriteUntilBufferFull (sourceSocket[i], sourceSocket[i]->GetTxAvailable ());    
 
 
          sinkSocket[i] = Socket::CreateSocket (adhocNodes.Get (rout[i+1]), TcpSocketFactory::GetTypeId ()); 
@@ -626,7 +636,6 @@ Flow::setupConnection(uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,Node
          sinkSocket[i]->Listen();
 
          sinkSocket[i]->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
-
        }
 
 // Create and bind the main source socket...
