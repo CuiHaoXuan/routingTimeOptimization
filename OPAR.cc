@@ -35,6 +35,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <math.h>
 
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
@@ -61,9 +62,14 @@ NS_LOG_COMPONENT_DEFINE ("OPAR");
 void setupMobility(double, double,double,NodeContainer,uint32_t,int64_t);
 YansWifiPhyHelper setupWifiPhy(double);
 Ipv4InterfaceContainer setupIP(NetDeviceContainer);
+void setupMobilityTrack(NodeContainer);
+void updateLifetimes();
+double distance(uint32_t,uint32_t);
+double lifeTime(uint32_t,uint32_t);
+void traceUAVpositions();
 
 static const uint16_t port = 50000;
-static const uint32_t totalRxBytes = 5000;
+static const uint32_t totalRxBytes = 500000;
 static Ipv4InterfaceContainer adhocInterfaces;
 static NetDeviceContainer adhocDevices;
 static NodeContainer adhocNodes;
@@ -72,6 +78,12 @@ static NodeContainer adhocNodes;
 static const uint32_t writeSize = 1040;
 uint8_t data[writeSize];
 static MobilityHelper mobilityAdhoc;
+const int nWifi=5;
+static double linkLifetime[nWifi][nWifi]={};//initilize the linkLifetime matix with all zeros 
+Ptr<Socket> mobilityTrackingSocket[nWifi];
+static double posMatrix[nWifi][12]={};//each row includes three sets of (time,x,y,z) 
+static int traceCount=0;
+static double totalTime=200;
 
 class Flow
 {
@@ -105,6 +117,8 @@ private:
   int * findRout(int,int);
   int routLen(int *);
   int posInRout(int );
+  bool isPathAlive();
+  void setupIntermediateConnections();
 };
 
 Flow::Flow()
@@ -123,15 +137,14 @@ Flow::Flow()
 int main (int argc, char *argv[])
 {
   int nSinks=1;
-  int64_t streamIndex = 0; // used to get consistent mobility across scenarios
-  double totalTime=100;
+  int64_t streamIndex = 1; // used to get consistent mobility across scenarios
   uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
   uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
-  int nWifi=5;
+  
   double txp=7.5;
   double X=100.0;
-  double Y=10.0;
-  double Z=50.0;
+  double Y=50.0;
+  double Z=10.0;
   
   CommandLine cmd;
   cmd.AddValue("nSinks", "No. of sinks to echo", nSinks);
@@ -139,7 +152,7 @@ int main (int argc, char *argv[])
   cmd.AddValue("totalTime", "Total time to echo", totalTime);
   cmd.AddValue("mobilityModel", "Mobility model to echo (1-RWP, 2-GaussMarkov): ", mobilityModel);
   cmd.AddValue("routingProtocol", "Routing protocol to echo (1-OLSR, 2-AODV, 3-DSDV, 4-DSR): ", routingProtocol);
-  cmd.AddValue("nWifi","No. of UAVs to echo",nWifi);
+  //cmd.AddValue("nWifi","No. of UAVs to echo",nWifi);
   cmd.AddValue("txp","Transmition power to echo",txp);
   cmd.AddValue("X","Area width to echo",X);
   cmd.AddValue("Y","Area Length to echo",Y);
@@ -237,7 +250,13 @@ switch (mobilityModel)
   // Later, we add IP addresses.
   adhocInterfaces=setupIP(adhocDevices);
   NS_LOG_UNCOND ("Setting up IP address for nodes...");
-  
+
+  setupMobilityTrack(adhocNodes);
+  updateLifetimes();
+for(int l=0;l<nWifi;l++){
+for(int m=0;m<nWifi;m++)
+std::cout<<"  "<<linkLifetime[l][m];  
+std::cout<<std::endl;}  
   ///////////////////////////////////////////////////////////////////////////
   // Simulation 1
   //
@@ -258,7 +277,7 @@ switch (mobilityModel)
         UAVflow[i].sink=i*2+1;      
         UAVflow[i].setupConnection(port,adhocInterfaces,adhocNodes);
      }
-     
+ 
   // One can toggle the comment for the following line on or off to see  
   // the effects of finite send buffer modelling.  One can also change 
   // the size of said buffer.
@@ -308,13 +327,290 @@ return count;
   
 }
 //###################### end of main() ###########################
+bool 
+Flow::isPathAlive()
+{
+  bool ans=true;
+  for (int i=0; i<pathLen; i++)
+      {
+        if(linkLifetime[rout[i]][rout[i+1]]<=0)
+          {
+            ans=false;
+            //break;
+          }
+      }
+  return ans;
+}
+
+void 
+traceUAVpositions()
+{
+  Vector currentPos;
+  Ptr<MobilityModel> mobility;
+  for(int i=0;i<nWifi;i++)
+     {
+       mobility = mobilityTrackingSocket[i]->GetNode()->GetObject<MobilityModel>();
+       currentPos=mobility->GetPosition();
+
+       posMatrix[i][0]=posMatrix[i][4];
+       posMatrix[i][1]=posMatrix[i][5];
+       posMatrix[i][2]=posMatrix[i][6];
+       posMatrix[i][3]=posMatrix[i][7];
+
+       posMatrix[i][4]=posMatrix[i][8];
+       posMatrix[i][5]=posMatrix[i][9];
+       posMatrix[i][6]=posMatrix[i][10];
+       posMatrix[i][7]=posMatrix[i][11];
+
+       posMatrix[i][8]=double(Simulator::Now ().GetSeconds ());
+       posMatrix[i][9]=currentPos.x;
+       posMatrix[i][10]=currentPos.y;
+       posMatrix[i][11]=currentPos.z;
+     }
+ traceCount++;
+ if(traceCount>=3)
+   {
+     Simulator::Schedule (Seconds (1.0), &traceUAVpositions);
+   }
+}
+
+double 
+lifeTime(uint32_t src,uint32_t dst)
+{
+  
+  double time=0;
+  bool flag=true;
+
+  double alpha_src=0;
+  double theta_src=0;
+  double vel1_src=0;
+  double vel2_src=0; 
+  double accel_src=0;
+
+  double alpha_dst=0;
+  double theta_dst=0;
+  double vel1_dst=0;
+  double vel2_dst=0; 
+  double accel_dst=0;
+
+if ((posMatrix[src][9]-posMatrix[src][5])==0)//to skip nan
+{
+  alpha_src=0;
+}
+else
+{
+  alpha_src=atan((posMatrix[src][10]-posMatrix[src][6])/(posMatrix[src][9]-posMatrix[src][5]));//azimuthal angel
+}
+
+if ((posMatrix[src][11]-posMatrix[src][7])==0)//to skip nan
+{
+  theta_src=0;
+}
+else
+{
+  theta_src=atan(sqrt(pow((posMatrix[src][9]-posMatrix[src][5]),2)+pow((posMatrix[src][10]-posMatrix[src][6]),2))/(posMatrix[src][11]-posMatrix[src][7]));//polar angel
+}
+
+if ((posMatrix[src][4]-posMatrix[src][0])==0)//to skip nan
+{
+  vel1_src=0;
+}
+else
+{
+  vel1_src=sqrt(pow((posMatrix[src][5]-posMatrix[src][1]),2)+pow((posMatrix[src][6]-posMatrix[src][2]),2)+pow((posMatrix[src][7]-posMatrix[src][3]),2))/(posMatrix[src][4]-posMatrix[src][0]);//velocity of the source node between t0 and t1
+}
+
+if ((posMatrix[src][8]-posMatrix[src][4])==0)//to skip nan
+{
+  vel2_src=0;
+}
+else
+{
+  vel2_src=sqrt(pow((posMatrix[src][9]-posMatrix[src][5]),2)+pow((posMatrix[src][10]-posMatrix[src][6]),2)+pow((posMatrix[src][11]-posMatrix[src][7]),2))/(posMatrix[src][8]-posMatrix[src][4]);//velocity of the source node between t1 and t2
+}
+
+if ((posMatrix[src][8]-posMatrix[src][0])==0)//to skip nan
+{
+  accel_src=0;
+}
+else
+{
+  accel_src=(vel2_src-vel1_src)/(posMatrix[src][8]-posMatrix[src][0]);//acceleration
+}
+
+if ((posMatrix[dst][9]-posMatrix[dst][5])==0)//to skip nan
+{
+  alpha_dst=0;
+}
+else
+{
+  alpha_dst=atan((posMatrix[dst][10]-posMatrix[dst][6])/(posMatrix[dst][9]-posMatrix[dst][5]));//azimuthal angel
+}
+
+if ((posMatrix[dst][11]-posMatrix[dst][7])==0)//to skip nan
+{
+  theta_dst=0;
+}
+else
+{
+  theta_dst=atan(sqrt(pow((posMatrix[dst][9]-posMatrix[dst][5]),2)+pow((posMatrix[dst][10]-posMatrix[dst][6]),2))/(posMatrix[dst][11]-posMatrix[dst][7]));//polar angel
+}
+
+if ((posMatrix[dst][4]-posMatrix[dst][0])==0)//to skip nan
+{
+  vel1_dst=0;
+}
+else
+{
+  vel1_dst=sqrt(pow((posMatrix[dst][5]-posMatrix[dst][1]),2)+pow((posMatrix[dst][6]-posMatrix[dst][2]),2)+pow((posMatrix[dst][7]-posMatrix[dst][3]),2))/(posMatrix[dst][4]-posMatrix[dst][0]);//velocity of the destination node between t0 and t1
+}
+
+if ((posMatrix[dst][8]-posMatrix[dst][4])==0)//to skip nan
+{
+  vel2_dst=0;
+}
+else
+{
+  vel2_dst=sqrt(pow((posMatrix[dst][9]-posMatrix[dst][5]),2)+pow((posMatrix[dst][10]-posMatrix[dst][6]),2)+pow((posMatrix[dst][11]-posMatrix[dst][7]),2))/(posMatrix[dst][8]-posMatrix[dst][4]);//velocity of the destination node between t1 and t2
+}
+
+if ((posMatrix[dst][8]-posMatrix[dst][0])==0)//to skip nan
+{
+  accel_dst=0;
+}
+else
+{
+  accel_dst=(vel2_dst-vel1_dst)/(posMatrix[dst][8]-posMatrix[dst][0]);//acceleration
+}
+
+  if(vel2_src==vel2_dst && vel2_src==0)//if both the src and dst are hovering
+     {
+       time=totalTime;
+       flag=false;
+     }
+  
+  double R=100;//the transmission range
+
+  //this parameters are to simplify the equations
+  double a0=posMatrix[src][9] - posMatrix[dst][9];
+  double a1=cos(alpha_src)*sin(theta_src);
+  double a2=cos(alpha_dst)*sin(theta_dst);
+  double a3=posMatrix[src][10] - posMatrix[dst][10] ;
+  double a4=sin(alpha_src)*sin(theta_src);
+  double a5=sin(alpha_dst)*sin(theta_dst) ;
+  double a6=posMatrix[src][11] - posMatrix[dst][11]; 
+  double a7=cos(theta_src);
+  double a8=cos(theta_dst);
+  //
+
+//Bisection method to find the positive root
+  double tOld=0;
+  double tNew=totalTime;
+  double t;
+
+  double dis1=0;
+  double dis2=0;
+  double dis3=0;
+  
+  while(flag)
+       {
+         t=tOld;
+         dis1 =sqrt(pow((a0 + a1*((accel_src*pow(t,2))/2 + vel2_src*t) - a2*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a3 + a4*((accel_src*pow(t,2))/2 + vel2_src*t) - a5*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a6 + a7*((accel_src*pow(t,2))/2 + vel2_src*t) - a8*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2))-R;
+         
+         t=tNew;
+         dis2 =sqrt(pow((a0 + a1*((accel_src*pow(t,2))/2 + vel2_src*t) - a2*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a3 + a4*((accel_src*pow(t,2))/2 + vel2_src*t) - a5*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) + pow((a6 + a7*((accel_src*pow(t,2))/2 + vel2_src*t) - a8*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2))-R;
+         
+         if(dis1*dis2==0)
+           {
+             flag=false;
+             if(dis1==0)
+               {
+                 tNew=tOld;
+               }
+           }
+         else if(dis1*dis2<0)
+           {
+             t=0.5*(tNew+tOld);
+             dis3=sqrt(pow((a0 + a1*((accel_src*pow(t,2))/2 + vel2_src*t) - a2*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a3 + a4*((accel_src*pow(t,2))/2 + vel2_src*t) - a5*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) + pow((a6 + a7*((accel_src*pow(t,2))/2 + vel2_src*t) - a8*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2))-R;
+             if(dis1*dis3==0)
+               {
+                 tNew=t;
+                 flag=false;
+               }
+             else if(dis1*dis3<0)
+               {
+                     tNew=t;
+               }
+             else
+               {
+                 tOld=t;
+               }
+           }
+         else//dis1*dis2>0
+           {
+             std::cout<<"Bolzano's condition has not satisfied with the starting points."<<std::endl;
+             flag=false;
+             tNew=0;
+           }
+    if (abs(tNew-tOld)<0.001)
+        flag=false;
+       }
+//end of bisection method
+  time=tNew;
+
+  return time;
+}
+
+double 
+distance(uint32_t src,uint32_t dst)
+{
+  double dist=0;
+  dist=sqrt(pow((posMatrix[src][9]-posMatrix[dst][9]),2)+pow((posMatrix[src][10]-posMatrix[dst][10]),2)+pow((posMatrix[src][11]-posMatrix[dst][11]),2));//the distance of the third (last) position 
+  return dist;
+}
+
+void 
+setupMobilityTrack(NodeContainer adhocNodes)
+{
+  for (int i=0;i<nWifi;i++)
+      {
+         mobilityTrackingSocket[i] = Socket::CreateSocket (adhocNodes.Get (i), TcpSocketFactory::GetTypeId ());
+         mobilityTrackingSocket[i]->Bind ();
+      }
+ traceUAVpositions();//to initilize the posMatrix
+ traceUAVpositions();//
+ traceUAVpositions();//
+}
+
+void 
+updateLifetimes()
+{
+  double dis=0;
+  for(int i=0;i<nWifi-1;i++)
+     {
+     for(int j=i+1;j<nWifi;j++)
+         {
+           dis=distance(i,j);
+           if(dis>100)
+              {
+                linkLifetime[i][j]=0;
+                linkLifetime[j][i]=0;
+              }
+           else
+              {
+                linkLifetime[i][j]=lifeTime(i,j);
+                linkLifetime[j][i]=linkLifetime[i][j];
+              }
+         }
+     }
+}
 
 
 int 
 Flow::posInRout(int intermediateSink)
 {
   int pos=0;
-  for (int i=0; i<pathLen;i++)
+  for (int i=0; i<=pathLen;i++)
       {
          if (rout[i]==intermediateSink)
              pos=i;
@@ -337,24 +633,16 @@ Flow::accept(Ptr<Socket> socket,const ns3::Address& from)
 void 
 Flow::ReceivePacket (Ptr<Socket> socket)
  {
-/*
-   Ptr<MobilityModel> mobility = socket->GetNode()->GetObject<MobilityModel>();
-   Vector currentPos=mobility->GetPosition();
-   std::cout<<"Current position: X= "<<currentPos.x<<", Y= "<<currentPos.y<<", Z= "<<currentPos.z <<std::endl;
-  */ 
-
   Ptr<Packet> packet = socket->Recv ();
 
-//#####################################################
 if (socket->GetNode()->GetId()==sink)
-   {
-      std::cout<<"current received packets: "<<currentRxPackets<<std::endl;
+   {      
       this->currentRxPackets+=1;
       this->currentRxBytes+=packet->GetSize ();
       if(currentRxBytes>=totalRxBytes)
-         {   
+         {  //lifeTime(0,1); 
             mainSourceSocket->Close ();
-            for (int i=pathLen-3;i>=0;i--)
+            for (int i=pathLen-2;i>=0;i--)
                 {
                    sinkSocket[i]->ShutdownRecv();
                    sourceSocket[i]->Close();
@@ -385,10 +673,9 @@ else
       packet->RemoveAllPacketTags ();
       packet->RemoveAllByteTags ();
 
-      std::cout<<"Pos: "<<pos<<", des address: "<<dstAddr<<std::endl;
       sourceSocket[pos-1]->SendTo (packet, 0,  InetSocketAddress (dstAddr,port));
     }
-//#####################################################
+
    SocketIpTosTag tosTag;
    if (packet->RemovePacketTag (tosTag))
      {
@@ -404,27 +691,34 @@ else
 void
 Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
 { 
-  while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0) 
-    { 
-      uint32_t left = totalRxBytes - this->currentRxBytes;
-      uint32_t dataOffset = this->currentTxBytes % writeSize;
-      uint32_t toWrite = writeSize - dataOffset;
-      toWrite = std::min (toWrite, left);
-      toWrite = std::min (toWrite, sourceSocket->GetTxAvailable ());
-      int amountSent = sourceSocket->Send (&data[dataOffset], toWrite, 0);
- 
-      if(amountSent < 0)
-        {
-          return;  
-        }
-      this->currentTxBytes += amountSent;
-      this->currentTxPackets+=1;
+  if(!isPathAlive())
+    {
+      std::cout<<"New path..."<<std::endl;
+      sourceSocket->Close();
+      //updateLifetimes();
+      rout=findRout(this->source,this->sink);
+      pathLen=routLen(rout);
+      setupIntermediateConnections();          
     }
+  else
+    {
+      while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0) 
+        {          
+          uint32_t left = totalRxBytes - this->currentRxBytes;
+          uint32_t dataOffset = this->currentTxBytes % writeSize;
+          uint32_t toWrite = writeSize - dataOffset;
+          toWrite = std::min (toWrite, left);
+          toWrite = std::min (toWrite, sourceSocket->GetTxAvailable ());
+          int amountSent = sourceSocket->Send (&data[dataOffset], toWrite, 0);
  
-  if (this->currentRxBytes>=totalRxBytes)
-     {
-        sourceSocket->Close ();
-     }
+          if(amountSent < 0)
+            {
+              return;  
+            }
+          this->currentTxBytes += amountSent;
+          this->currentTxPackets+=1;
+        }
+    }
 }
 
 void
@@ -567,8 +861,8 @@ for (int i=0; i<100; i++)
 
 rout[0]=source;//0
 rout[1]=2;
-rout[2]=3;
-rout[3]=sink;//1
+//rout[2]=3;
+rout[2]=sink;//1
  
 return rout;
 }
@@ -577,10 +871,10 @@ int
 Flow::routLen(int *rout)
 {
 int len=0;
-for (int i=0;i<100;i++)
+for (int i=0;i<nWifi;i++)
      if (rout[i]>=0)
          len++;
-
+len=len-1;
 return len;
 }
 
@@ -590,28 +884,34 @@ Flow::setupConnection(uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,Node
   //find the rout 
   rout=findRout(this->source,this->sink);
   pathLen=routLen(rout);
-    
+   
   // Create and bind the main sink socket...
-  mainSinkSocket = Socket::CreateSocket (adhocNodes.Get (rout[pathLen-1]), TcpSocketFactory::GetTypeId ());   
- 
+  mainSinkSocket = Socket::CreateSocket (adhocNodes.Get (rout[pathLen]), TcpSocketFactory::GetTypeId ());    
   TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
   Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
   InetSocketAddress local= InetSocketAddress (Ipv4Address::GetAny (), port);
-
   mainSinkSocket->Bind(local);
-  mainSinkSocket->Listen();
-  
+  mainSinkSocket->Listen();  
   mainSinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
 
-// Create and bind the intermediate sockets...
+  // Create and bind the main source socket...
+  mainSourceSocket = Socket::CreateSocket (adhocNodes.Get (rout[0]), TcpSocketFactory::GetTypeId ()); 
+  mainSourceSocket->Bind ();
 
-  for (int i=pathLen-3;i>=0;i--)
+  // Create and bind the intermediate sockets...
+  setupIntermediateConnections(); 
+}
+
+void
+Flow::setupIntermediateConnections()
+{
+for (int i=pathLen-2;i>=0;i--)
        {
          // Create a source to send packets.  Instead of a full Application
          // and the helper APIs you might see in other example files, this example
          // will use sockets directly and register some socket callbacks as a sending
          // "Application".
-
+  
          // Create and bind the source socket...
          //Ptr<Socket> sourceSocket;
          sourceSocket[i] = Socket::CreateSocket (adhocNodes.Get (rout[i+1]), TcpSocketFactory::GetTypeId ());
@@ -620,27 +920,14 @@ Flow::setupConnection(uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,Node
          NS_LOG_LOGIC ("Starting flow at time " <<  Simulator::Now ().GetSeconds ());
          sourceSocket[i]->Connect (InetSocketAddress (adhocInterfaces.GetAddress (rout[i+2]), port)); //connect
   
-         // tell the tcp implementation to call WriteUntilBufferFull again
-         // if we blocked and new tx buffer space becomes available
-         //sourceSocket[i]->SetSendCallback (MakeCallback (&Flow::WriteUntilBufferFull,this));
-         //WriteUntilBufferFull (sourceSocket[i], sourceSocket[i]->GetTxAvailable ());    
-
-
-         sinkSocket[i] = Socket::CreateSocket (adhocNodes.Get (rout[i+1]), TcpSocketFactory::GetTypeId ()); 
- 
+         sinkSocket[i] = Socket::CreateSocket (adhocNodes.Get (rout[i+1]), TcpSocketFactory::GetTypeId ());  
          TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
          Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
          InetSocketAddress local= InetSocketAddress (Ipv4Address::GetAny (), port);
-
          sinkSocket[i]->Bind(local);
          sinkSocket[i]->Listen();
-
          sinkSocket[i]->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
        }
-
-// Create and bind the main source socket...
-  mainSourceSocket = Socket::CreateSocket (adhocNodes.Get (rout[0]), TcpSocketFactory::GetTypeId ()); 
-  mainSourceSocket->Bind ();
   mainSourceSocket->Connect (InetSocketAddress (adhocInterfaces.GetAddress (rout[1]), port)); //connecting main source socket
   mainSourceSocket->SetSendCallback (MakeCallback (&Flow::WriteUntilBufferFull,this));
   WriteUntilBufferFull (mainSourceSocket, mainSourceSocket->GetTxAvailable ()); 
@@ -648,3 +935,4 @@ Flow::setupConnection(uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,Node
   // Trace changes to the congestion window
   Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&Flow::CwndTracer,this));
 }
+
