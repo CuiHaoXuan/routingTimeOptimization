@@ -36,6 +36,7 @@
 #include <fstream>
 #include <string>
 #include <math.h>
+#include <bits/stdc++.h>
 
 #include "ns3/core-module.h"
 #include "ns3/applications-module.h"
@@ -56,6 +57,7 @@
 
 
 using namespace ns3;
+using namespace std;
 
 NS_LOG_COMPONENT_DEFINE ("OPAR");
 
@@ -67,9 +69,13 @@ void updateLifetimes();
 double distance(uint32_t,uint32_t);
 double lifeTime(uint32_t,uint32_t);
 void traceUAVpositions();
+void BFS(double **,uint32_t,uint32_t,int *);//Breadth First Search
+double objectiveValue(int *);
+void removeLowestLifetimes(double **, int *);
+int routLen(int *);
 
 static const uint16_t port = 50000;
-static const uint32_t totalRxBytes = 500000;
+static const uint32_t totalRxBytes = 5000000;
 static Ipv4InterfaceContainer adhocInterfaces;
 static NetDeviceContainer adhocDevices;
 static NodeContainer adhocNodes;
@@ -78,12 +84,15 @@ static NodeContainer adhocNodes;
 static const uint32_t writeSize = 1040;
 uint8_t data[writeSize];
 static MobilityHelper mobilityAdhoc;
-const int nWifi=5;
+const int nWifi=50;
 static double linkLifetime[nWifi][nWifi]={};//initilize the linkLifetime matix with all zeros 
 Ptr<Socket> mobilityTrackingSocket[nWifi];
 static double posMatrix[nWifi][12]={};//each row includes three sets of (time,x,y,z) 
 static int traceCount=0;
 static double totalTime=200;
+static const double pathLenWeight=0.5;// 0 <pathLenWeight<= 1. pathLenWeight=1 leads to shortest path.
+static const double pathLifetimeWeight=1-pathLenWeight;
+
 
 class Flow
 {
@@ -103,7 +112,7 @@ private:
   uint32_t currentRxBytes;
   uint32_t currentRxPackets;
   int pathLen;
-  int *rout;
+  int rout[nWifi];
   
   Ptr<Socket> mainSourceSocket;
   Ptr<Socket> mainSinkSocket;
@@ -114,8 +123,7 @@ private:
   void accept(Ptr<Socket>,const ns3::Address&);
   void ReceivePacket (Ptr<Socket>);
   void CwndTracer (uint32_t , uint32_t );
-  int * findRout(int,int);
-  int routLen(int *);
+  void findRout(int,int);
   int posInRout(int );
   bool isPathAlive();
   void setupIntermediateConnections();
@@ -136,15 +144,15 @@ Flow::Flow()
 //###################### main() ###########################
 int main (int argc, char *argv[])
 {
-  int nSinks=1;
-  int64_t streamIndex = 1; // used to get consistent mobility across scenarios
+  int nSinks=2;
+  int64_t streamIndex = 0; // used to get consistent mobility across scenarios
   uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
   uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
   
   double txp=7.5;
-  double X=100.0;
-  double Y=50.0;
-  double Z=10.0;
+  double X=300.0;
+  double Y=150.0;
+  double Z=50.0;
   
   CommandLine cmd;
   cmd.AddValue("nSinks", "No. of sinks to echo", nSinks);
@@ -253,10 +261,7 @@ switch (mobilityModel)
 
   setupMobilityTrack(adhocNodes);
   updateLifetimes();
-for(int l=0;l<nWifi;l++){
-for(int m=0;m<nWifi;m++)
-std::cout<<"  "<<linkLifetime[l][m];  
-std::cout<<std::endl;}  
+ 
   ///////////////////////////////////////////////////////////////////////////
   // Simulation 1
   //
@@ -274,7 +279,7 @@ std::cout<<std::endl;}
   for (int i = 0; i < nSinks; i++)
      {  
         UAVflow[i].source=i*2;
-        UAVflow[i].sink=i*2+1;      
+        UAVflow[i].sink=i*2+1;     
         UAVflow[i].setupConnection(port,adhocInterfaces,adhocNodes);
      }
  
@@ -327,6 +332,103 @@ return count;
   
 }
 //###################### end of main() ###########################
+void 
+BFS(double netGraph[nWifi][nWifi],uint32_t src,uint32_t dst, int *path)
+{
+  int dis[nWifi];//the distance from the src
+  int predecessor[nWifi];//the predecessor of each node toward the src
+  bool reachDst=false;
+  bool noPath=false;
+  int current=src;
+  list<int> currentLevel;
+  for(int i=0;i<nWifi;i++)//marking all vertices as unvisited
+     {
+       predecessor[i]=-1;
+       dis[i]=-1;
+     }
+  dis[src]=0;
+  while(!reachDst && !noPath)
+   {
+     for(uint32_t i=0;i<nWifi;i++)
+        {
+          if(netGraph[current][i]>0)
+             {
+               if(i==dst)
+                 {
+                   reachDst=true;
+                 }
+               if(predecessor[i]==-1)// it is not seen yet
+                 {
+                   currentLevel.push_back(i);
+                   predecessor[i]=current;
+                   dis[i]=dis[current]+1;
+                 }
+             }           
+        } 
+     if(!currentLevel.empty())
+        {  
+          current=currentLevel.front();
+          currentLevel.pop_front();
+        }
+     else
+       noPath=true;
+   }
+  if(!reachDst)//there is no path
+    {
+      path[0]=-1;
+    }
+  else
+    {
+      path[dis[dst]]=dst;
+      for(int i=dis[dst];i>0;i--)
+         {
+           path[i-1]=predecessor[path[i]];
+         }
+    }
+}
+
+double 
+objectiveValue(int *path)
+{
+  double objective=0;
+  double lowestLifetime =totalTime;
+  int len=routLen(path);
+  for(int i=0;i<len;i++)
+     {
+       if(linkLifetime[path[i]][path[i+1]]<lowestLifetime)
+          {
+            lowestLifetime=linkLifetime[path[i]][path[i+1]];
+          } 
+     }  
+  objective=pathLenWeight*len+pathLifetimeWeight/lowestLifetime;
+  return objective;
+}
+
+void 
+removeLowestLifetimes(double netGraph[nWifi][nWifi], int *path)
+{
+  int len=routLen(path);
+  double lowestLifetime=totalTime;
+  for(int i=0;i<len;i++)
+     {
+       if(netGraph[path[i]][path[i+1]]<lowestLifetime)
+          {
+            lowestLifetime=netGraph[path[i]][path[i+1]];
+          } 
+     }
+  for(int i=0;i<nWifi;i++)
+     {
+       for(int j=0;j<nWifi;j++)
+          {
+            if(netGraph[i][j]<=lowestLifetime)
+               {
+                 netGraph[i][j]=0;
+               }
+          }
+     }
+}
+
+
 bool 
 Flow::isPathAlive()
 {
@@ -652,7 +754,7 @@ if (socket->GetNode()->GetId()==sink)
             this->successfullyTerminated=true;
             this->FCT=Simulator::Now ().GetSeconds ();
             this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps 
-            std::cout<<"currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<std::endl;
+            std::cout<<"currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<", FCT: "<<this->FCT<<std::endl;
          }
     }
 else if (successfullyTerminated)
@@ -695,9 +797,9 @@ Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
     {
       std::cout<<"New path..."<<std::endl;
       sourceSocket->Close();
-      //updateLifetimes();
-      rout=findRout(this->source,this->sink);
-      pathLen=routLen(rout);
+      updateLifetimes();
+      findRout(this->source,this->sink);      
+      pathLen=routLen(this->rout);
       setupIntermediateConnections();          
     }
   else
@@ -851,24 +953,49 @@ setupIP(NetDeviceContainer adhocDevices)
   return adhocInterfaces;
 }
 
-int * 
+void 
 Flow::findRout(int source,int sink)
 {
-static int rout[100];
-
-for (int i=0; i<100; i++)
-         rout[i]=-1;
-
-rout[0]=source;//0
-rout[1]=2;
-//rout[2]=3;
-rout[2]=sink;//1
- 
-return rout;
+  int path[nWifi]; 
+  for (int i=0; i<nWifi; i++)
+     {
+       this->rout[i]=-1;
+       path[i]=-1;
+     }
+  bool pathAvailable=true;
+  double objective;
+  objective=nWifi;
+  double netGraph[nWifi][nWifi];
+  for(int i=0;i<nWifi;i++)
+    {
+      for(int j=0;j<nWifi;j++)
+         {
+           netGraph[i][j]=linkLifetime[i][j];
+         }
+     }
+  while(pathAvailable)
+    { 
+      BFS(netGraph,source,sink,path);
+      if(path[0]==-1)
+        {
+          pathAvailable=false;
+        }  
+      else if (objectiveValue(path)<objective)
+         {
+           objective=objectiveValue(path);
+           for(int j=0;j<=routLen(path);j++)
+               this->rout[j]=path[j];
+           removeLowestLifetimes(netGraph,path);
+         }
+      else
+         {
+           removeLowestLifetimes(netGraph,path);
+         }      
+    }
 }
 
 int 
-Flow::routLen(int *rout)
+routLen(int *rout)
 {
 int len=0;
 for (int i=0;i<nWifi;i++)
@@ -881,8 +1008,8 @@ return len;
 void 
 Flow::setupConnection(uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
 {
-  //find the rout 
-  rout=findRout(this->source,this->sink);
+  //find the rout
+  findRout(this->source,this->sink);
   pathLen=routLen(rout);
    
   // Create and bind the main sink socket...

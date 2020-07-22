@@ -110,15 +110,15 @@ Flow::Flow()
 //###################### main() ###########################
 int main (int argc, char *argv[])
 {
-  int nSinks=4;
-  int64_t streamIndex = 1; // used to get consistent mobility across scenarios
-  double totalTime=500;
+  int nSinks=2;
+  int64_t streamIndex = 0; // used to get consistent mobility across scenarios
+  double totalTime=200;
   uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
   uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
   int nWifi=50;
   double txp=7.5;
   double X=300.0;
-  double Y=1500.0;
+  double Y=150.0;
   double Z=50.0;
 
   
@@ -320,7 +320,7 @@ Flow::ReceivePacket (Ptr<Socket> socket)
          this->successfullyTerminated=true;
          this->FCT=Simulator::Now ().GetSeconds ();
          this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps 
-         std::cout<<"currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<std::endl;
+         std::cout<<"currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<", FCT: "<<this->FCT<<std::endl;
       }
    SocketIpTosTag tosTag;
    if (packet->RemovePacketTag (tosTag))
