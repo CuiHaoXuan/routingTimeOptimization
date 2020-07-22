@@ -138,10 +138,6 @@ int main (int argc, char *argv[])
   std::string phyMode ("DsssRate11Mbps");
   const std::string rate="2048bps";
 
-  std::stringstream ss;
-  ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks;
-  std::string tr_name (ss.str ());
-
   std::string routingName;
   std::string mobilityName;
 
@@ -175,7 +171,9 @@ switch (mobilityModel)
       NS_FATAL_ERROR ("No such model:" << mobilityModel);
     }
 
-
+  std::stringstream ss;
+  ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks<<routingName<<"_"<<mobilityName<<"_"<<streamIndex;
+  std::string tr_name (ss.str ());
   
   NS_LOG_UNCOND ("Starting the simulation...");
 

@@ -84,7 +84,7 @@ static NodeContainer adhocNodes;
 static const uint32_t writeSize = 1040;
 uint8_t data[writeSize];
 static MobilityHelper mobilityAdhoc;
-const int nWifi=50;
+int const nWifi=50;
 static double linkLifetime[nWifi][nWifi]={};//initilize the linkLifetime matix with all zeros 
 Ptr<Socket> mobilityTrackingSocket[nWifi];
 static double posMatrix[nWifi][12]={};//each row includes three sets of (time,x,y,z) 
@@ -123,7 +123,7 @@ private:
   void accept(Ptr<Socket>,const ns3::Address&);
   void ReceivePacket (Ptr<Socket>);
   void CwndTracer (uint32_t , uint32_t );
-  void findRout(int,int);
+  void findRout();
   int posInRout(int );
   bool isPathAlive();
   void setupIntermediateConnections();
@@ -170,10 +170,6 @@ int main (int argc, char *argv[])
   std::string phyMode ("DsssRate11Mbps");
   const std::string rate="2048bps";
 
-  std::stringstream ss;
-  ss<<"traceFiles/OPAR_UAV"<<nWifi<<"Con"<<nSinks;
-  std::string tr_name (ss.str ());
-
   std::string routingName;
   std::string mobilityName;
 
@@ -207,7 +203,9 @@ switch (mobilityModel)
       NS_FATAL_ERROR ("No such model:" << mobilityModel);
     }
 
-
+  std::stringstream ss;
+  ss<<"traceFiles/OPAR_UAV"<<nWifi<<"Con"<<nSinks<<routingName<<"_"<<mobilityName<< "_"<<streamIndex;
+  std::string tr_name (ss.str ());
   
   NS_LOG_UNCOND ("Starting the simulation...");
 
@@ -798,9 +796,16 @@ Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
       std::cout<<"New path..."<<std::endl;
       sourceSocket->Close();
       updateLifetimes();
-      findRout(this->source,this->sink);      
-      pathLen=routLen(this->rout);
-      setupIntermediateConnections();          
+      findRout();
+      if(rout[0]==-1) 
+        {
+          Simulator::Schedule (Seconds (1.0), &Flow::WriteUntilBufferFull,this,sourceSocket,txSpace);
+        }
+      else
+        {     
+          pathLen=routLen(this->rout);
+          setupIntermediateConnections();
+        }          
     }
   else
     {
@@ -954,7 +959,7 @@ setupIP(NetDeviceContainer adhocDevices)
 }
 
 void 
-Flow::findRout(int source,int sink)
+Flow::findRout()
 {
   int path[nWifi]; 
   for (int i=0; i<nWifi; i++)
@@ -975,7 +980,7 @@ Flow::findRout(int source,int sink)
      }
   while(pathAvailable)
     { 
-      BFS(netGraph,source,sink,path);
+      BFS(netGraph,this->source,this->sink,path);
       if(path[0]==-1)
         {
           pathAvailable=false;
@@ -1009,24 +1014,31 @@ void
 Flow::setupConnection(uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
 {
   //find the rout
-  findRout(this->source,this->sink);
-  pathLen=routLen(rout);
+  findRout();
+  if(rout[0]==-1)
+    {
+      Simulator::Schedule (Seconds (1.0), &Flow::setupConnection,this,port,adhocInterfaces,adhocNodes);
+    }
+  else
+    {
+      pathLen=routLen(rout);
    
-  // Create and bind the main sink socket...
-  mainSinkSocket = Socket::CreateSocket (adhocNodes.Get (rout[pathLen]), TcpSocketFactory::GetTypeId ());    
-  TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
-  Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
-  InetSocketAddress local= InetSocketAddress (Ipv4Address::GetAny (), port);
-  mainSinkSocket->Bind(local);
-  mainSinkSocket->Listen();  
-  mainSinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
+      // Create and bind the main sink socket...
+      mainSinkSocket = Socket::CreateSocket (adhocNodes.Get (rout[pathLen]), TcpSocketFactory::GetTypeId ());    
+      TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
+      Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
+      InetSocketAddress local= InetSocketAddress (Ipv4Address::GetAny (), port);
+      mainSinkSocket->Bind(local);
+      mainSinkSocket->Listen();  
+      mainSinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
 
-  // Create and bind the main source socket...
-  mainSourceSocket = Socket::CreateSocket (adhocNodes.Get (rout[0]), TcpSocketFactory::GetTypeId ()); 
-  mainSourceSocket->Bind ();
+      // Create and bind the main source socket...
+      mainSourceSocket = Socket::CreateSocket (adhocNodes.Get (rout[0]), TcpSocketFactory::GetTypeId ()); 
+      mainSourceSocket->Bind ();
 
-  // Create and bind the intermediate sockets...
-  setupIntermediateConnections(); 
+      // Create and bind the intermediate sockets...
+      setupIntermediateConnections();
+    } 
 }
 
 void
