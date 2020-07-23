@@ -74,8 +74,6 @@ double objectiveValue(int *);
 void removeLowestLifetimes(double **, int *);
 int routLen(int *);
 
-static double txp=7.5;
-static double TrRange=100;
 static const uint16_t port = 50000;
 static const uint32_t totalRxBytes = 5000000;
 static Ipv4InterfaceContainer adhocInterfaces;
@@ -84,15 +82,15 @@ static NodeContainer adhocNodes;
 // Perform series of 1040 byte writes (this is a multiple of 26 since
 // we want to detect data splicing in the output stream)
 static const uint32_t writeSize = 1040;
-static uint8_t data[writeSize];
+uint8_t data[writeSize];
 static MobilityHelper mobilityAdhoc;
-static int const nWifi=50;
+int const nWifi=50;
 static double linkLifetime[nWifi][nWifi]={};//initilize the linkLifetime matix with all zeros 
-static Ptr<Socket> mobilityTrackingSocket[nWifi];
+Ptr<Socket> mobilityTrackingSocket[nWifi];
 static double posMatrix[nWifi][12]={};//each row includes three sets of (time,x,y,z) 
 static int traceCount=0;
 static double totalTime=100;
-static const double pathLenWeight=0.5;// 0 <= pathLenWeight <= 1. pathLenWeight=1 leads to shortest path, pathLenWeight=0 leads to the path with longest lifeTime
+static const double pathLenWeight=0.5;// 0 <pathLenWeight<= 1. pathLenWeight=1 leads to shortest path.
 static const double pathLifetimeWeight=1-pathLenWeight;
 
 
@@ -115,7 +113,6 @@ private:
   uint32_t currentRxPackets;
   int pathLen;
   int rout[nWifi];
-  bool packetReceived;
   
   Ptr<Socket> mainSourceSocket;
   Ptr<Socket> mainSinkSocket;
@@ -128,7 +125,7 @@ private:
   void CwndTracer (uint32_t , uint32_t );
   void findRout();
   int posInRout(int );
-  void updatePathIfNotAlive();
+  bool isPathAlive();
   void setupIntermediateConnections();
 };
 
@@ -140,11 +137,8 @@ Flow::Flow()
     currentTxPackets(0),
     currentRxBytes(0),
     currentRxPackets(0),
-    pathLen(0),
-    packetReceived(false)
+    pathLen(0)
 {
-   for(int i=0;i<nWifi;i++)
-       this->rout[i]=-1;
 }
 
 //###################### main() ###########################
@@ -152,8 +146,9 @@ int main (int argc, char *argv[])
 {
   int nSinks=1;
   int64_t streamIndex = 0; // used to get consistent mobility across scenarios
-  uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov   
-
+  uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
+  
+  double txp=7.5;
   double X=300.0;
   double Y=1500.0;
   double Z=50.0;
@@ -260,9 +255,9 @@ switch (mobilityModel)
   
   for (int i = 0; i < nSinks; i++)
      {  
-        std::cout<<"connection "<<i<<" is confguring..."<<std::endl;
-        UAVflow[i].source=i*2;
-        UAVflow[i].sink=i*2+1;     
+        UAVflow[i].source=0;
+        UAVflow[i].sink=1;
+        std::cout<<"   Setting up connection "<<i<<"..."<<std::endl;     
         UAVflow[i].setupConnection(port,adhocInterfaces,adhocNodes);
      }
  
@@ -412,23 +407,25 @@ removeLowestLifetimes(double netGraph[nWifi][nWifi], int *path)
 }
 
 
-void 
-Flow::updatePathIfNotAlive()
+bool 
+Flow::isPathAlive()
 {
-  if(!(this->packetReceived))
+  bool ans=true;
+  if(pathLen==0)
     {
-      updateLifetimes();
-      findRout();
-      if(this->rout[0]==-1) 
-        {
-        }
-      else
-        {
-          setupIntermediateConnections();
-        }          
+      ans=false;
     }
-  Simulator::Schedule (Seconds (1.0), &Flow::updatePathIfNotAlive,this);  
-  this->packetReceived=false;
+  else
+    {
+      for (int i=0; i<pathLen; i++)
+          {
+            if(linkLifetime[rout[i]][rout[i+1]]<=0)
+              {
+                ans=false;            
+              }
+          }
+    }
+  return ans;
 }
 
 void 
@@ -467,8 +464,8 @@ double
 lifeTime(uint32_t src,uint32_t dst)
 {
   
-  double time=0;//the link lifetime
-  bool flag=true;//Bisection flag which means repeat the process until
+  double time=0;
+  bool flag=true;
 
   double alpha_src=0;
   double theta_src=0;
@@ -577,6 +574,8 @@ else
        time=totalTime;
        flag=false;
      }
+  
+  double R=100;//the transmission range
 
   //this parameters are to simplify the equations
   double a0=posMatrix[src][9] - posMatrix[dst][9];
@@ -602,10 +601,10 @@ else
   while(flag)
        {
          t=tOld;
-         dis1 =sqrt(pow((a0 + a1*((accel_src*pow(t,2))/2 + vel2_src*t) - a2*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a3 + a4*((accel_src*pow(t,2))/2 + vel2_src*t) - a5*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a6 + a7*((accel_src*pow(t,2))/2 + vel2_src*t) - a8*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2))-TrRange;
+         dis1 =sqrt(pow((a0 + a1*((accel_src*pow(t,2))/2 + vel2_src*t) - a2*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a3 + a4*((accel_src*pow(t,2))/2 + vel2_src*t) - a5*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a6 + a7*((accel_src*pow(t,2))/2 + vel2_src*t) - a8*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2))-R;
          
          t=tNew;
-         dis2 =sqrt(pow((a0 + a1*((accel_src*pow(t,2))/2 + vel2_src*t) - a2*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a3 + a4*((accel_src*pow(t,2))/2 + vel2_src*t) - a5*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) + pow((a6 + a7*((accel_src*pow(t,2))/2 + vel2_src*t) - a8*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2))-TrRange;
+         dis2 =sqrt(pow((a0 + a1*((accel_src*pow(t,2))/2 + vel2_src*t) - a2*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a3 + a4*((accel_src*pow(t,2))/2 + vel2_src*t) - a5*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) + pow((a6 + a7*((accel_src*pow(t,2))/2 + vel2_src*t) - a8*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2))-R;
          
          if(dis1*dis2==0)
            {
@@ -618,7 +617,7 @@ else
          else if(dis1*dis2<0)
            {
              t=0.5*(tNew+tOld);
-             dis3=sqrt(pow((a0 + a1*((accel_src*pow(t,2))/2 + vel2_src*t) - a2*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a3 + a4*((accel_src*pow(t,2))/2 + vel2_src*t) - a5*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) + pow((a6 + a7*((accel_src*pow(t,2))/2 + vel2_src*t) - a8*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2))-TrRange;
+             dis3=sqrt(pow((a0 + a1*((accel_src*pow(t,2))/2 + vel2_src*t) - a2*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) +pow((a3 + a4*((accel_src*pow(t,2))/2 + vel2_src*t) - a5*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2) + pow((a6 + a7*((accel_src*pow(t,2))/2 + vel2_src*t) - a8*((accel_dst*pow(t,2))/2 + vel2_dst*t)),2))-R;
              if(dis1*dis3==0)
                {
                  tNew=t;
@@ -635,12 +634,9 @@ else
            }
          else//dis1*dis2>0
            {
-             //"Bolzano's condition has not satisfied with the starting points."
-             //There is no root in the interval or there is an even number of roots
-             //due to the shape of the curve, it could not have an even number of roots
-             //hence we consider the positive root beyond the interval [0 totalTime]
-             // and consider it as the maximum time of the simulation which is totalTime   
+             std::cout<<"Bolzano's condition has not satisfied with the starting points."<<std::endl;
              flag=false;
+             tNew=0;
            }
     if (abs(tNew-tOld)<0.001)
         flag=false;
@@ -681,7 +677,7 @@ updateLifetimes()
      for(int j=i+1;j<nWifi;j++)
          {
            dis=distance(i,j);
-           if(dis>TrRange)
+           if(dis>100)
               {
                 linkLifetime[i][j]=0;
                 linkLifetime[j][i]=0;
@@ -699,10 +695,10 @@ updateLifetimes()
 int 
 Flow::posInRout(int intermediateSink)
 {
-  int pos=-1;
-  for (int i=0; i<=nWifi;i++)
+  int pos=0;
+  for (int i=0; i<=pathLen;i++)
       {
-         if (this->rout[i]==intermediateSink)
+         if (rout[i]==intermediateSink)
              pos=i;
       }
   return pos;
@@ -727,7 +723,6 @@ Flow::ReceivePacket (Ptr<Socket> socket)
 
 if (socket->GetNode()->GetId()==sink)
    {      
-      this->packetReceived=true;
       this->currentRxPackets+=1;
       this->currentRxBytes+=packet->GetSize ();
       if(currentRxBytes>=totalRxBytes)
@@ -755,7 +750,7 @@ else
       pos=posInRout(socket->GetNode()->GetId());
 
       std::stringstream ss;
-      ss<<"10.0.0."<<this->rout[pos]+1;
+      ss<<"10.0.0."<<rout[pos]+1;
       std::string str=ss.str();
       const char * c = str.c_str();
       Ipv4Address dstAddr (c);
@@ -781,6 +776,23 @@ else
 void
 Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
 { 
+  if(!isPathAlive())
+    {
+      std::cout<<"New path..."<<std::endl;
+      sourceSocket->Close();
+      updateLifetimes();
+      findRout();
+      if(rout[0]==-1) 
+        {
+          Simulator::Schedule (Seconds (1.0), &Flow::WriteUntilBufferFull,this,sourceSocket,txSpace);
+        }
+      else
+        {
+          setupIntermediateConnections();
+        }          
+    }
+  else
+    {
       while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0) 
         {          
           uint32_t left = totalRxBytes - this->currentRxBytes;
@@ -797,6 +809,7 @@ Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
           this->currentTxBytes += amountSent;
           this->currentTxPackets+=1;
         }
+    }
 }
 
 void
@@ -931,11 +944,16 @@ setupIP(NetDeviceContainer adhocDevices)
 
 void 
 Flow::findRout()
-{  
+{
   int path[nWifi]; 
+  for (int i=0; i<nWifi; i++)
+     {
+       this->rout[i]=-1;
+       path[i]=-1;
+     }
   bool pathAvailable=true;
   double objective;
-  objective=10000;//Just a big number
+  objective=nWifi;
   double netGraph[nWifi][nWifi];
   for(int i=0;i<nWifi;i++)
     {
@@ -946,10 +964,6 @@ Flow::findRout()
      }
   while(pathAvailable)
     { 
-      for (int i=0; i<nWifi; i++)
-         {
-           path[i]=-1;
-         }      
       BFS(netGraph,this->source,this->sink,path);
       if(path[0]==-1)
         {
@@ -958,8 +972,8 @@ Flow::findRout()
       else if (objectiveValue(path)<objective)
          {
            objective=objectiveValue(path);
-           for(int i=0;i<nWifi;i++)
-               this->rout[i]=path[i];
+           for(int j=0;j<=routLen(path);j++)
+               this->rout[j]=path[j];
            removeLowestLifetimes(netGraph,path);
          }
       else
@@ -967,26 +981,18 @@ Flow::findRout()
            removeLowestLifetimes(netGraph,path);
          }      
     }
-  if(this->rout[0]==-1)//there is no rout
-     {
-       this->pathLen=0;
-      }  
+  if(rout[0]==-1)
+     pathLen=0;
   else
-     {
-       this->pathLen=routLen(this->rout);
-       std::cout<<"time: "<<Simulator::Now ().GetSeconds ()<<": The path is: ";
-       for(int i=0;i<=pathLen;i++)
-           std::cout<<this->rout[i]<<" ";
-       std::cout<<std::endl;
-      } 
+     pathLen=routLen(rout);
 }
 
 int 
-routLen(int *path)
+routLen(int *rout)
 {
 int len=0;
 for (int i=0;i<nWifi;i++)
-     if (path[i]>=0)
+     if (rout[i]>=0)
          len++;
 len=len-1;
 return len;
@@ -997,14 +1003,15 @@ Flow::setupConnection(uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,Node
 {
   //find the rout
   findRout();
-  if(this->rout[0]==-1)
-    {//there is no rout, now.
+  if(rout[0]==-1)
+    {
+      std::cout<<"there is no rout"<<std::endl; 
       Simulator::Schedule (Seconds (1.0), &Flow::setupConnection,this,port,adhocInterfaces,adhocNodes);
     }
   else
-    { 
+    { std::cout<<"found the rout"<<std::endl;
       // Create and bind the main sink socket...
-      mainSinkSocket = Socket::CreateSocket (adhocNodes.Get (this->rout[pathLen]), TcpSocketFactory::GetTypeId ());    
+      mainSinkSocket = Socket::CreateSocket (adhocNodes.Get (rout[pathLen]), TcpSocketFactory::GetTypeId ());    
       TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
       Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
       InetSocketAddress local= InetSocketAddress (Ipv4Address::GetAny (), port);
@@ -1013,13 +1020,11 @@ Flow::setupConnection(uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,Node
       mainSinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
 
       // Create and bind the main source socket...
-      mainSourceSocket = Socket::CreateSocket (adhocNodes.Get (this->rout[0]), TcpSocketFactory::GetTypeId ()); 
+      mainSourceSocket = Socket::CreateSocket (adhocNodes.Get (rout[0]), TcpSocketFactory::GetTypeId ()); 
       mainSourceSocket->Bind ();
 
       // Create and bind the intermediate sockets...
       setupIntermediateConnections();
-      this->packetReceived=true;
-      updatePathIfNotAlive();
     } 
 }
 
@@ -1035,13 +1040,13 @@ for (int i=pathLen-2;i>=0;i--)
   
          // Create and bind the source socket...
          //Ptr<Socket> sourceSocket;
-         sourceSocket[i] = Socket::CreateSocket (adhocNodes.Get (this->rout[i+1]), TcpSocketFactory::GetTypeId ());
+         sourceSocket[i] = Socket::CreateSocket (adhocNodes.Get (rout[i+1]), TcpSocketFactory::GetTypeId ());
          sourceSocket[i]->Bind ();  
        //begin implementation of sending "Application"
          NS_LOG_LOGIC ("Starting flow at time " <<  Simulator::Now ().GetSeconds ());
-         sourceSocket[i]->Connect (InetSocketAddress (adhocInterfaces.GetAddress (this->rout[i+2]), port)); //connect
-             
-         sinkSocket[i] = Socket::CreateSocket (adhocNodes.Get (this->rout[i+1]), TcpSocketFactory::GetTypeId ());  
+         sourceSocket[i]->Connect (InetSocketAddress (adhocInterfaces.GetAddress (rout[i+2]), port)); //connect
+  
+         sinkSocket[i] = Socket::CreateSocket (adhocNodes.Get (rout[i+1]), TcpSocketFactory::GetTypeId ());  
          TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
          Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
          InetSocketAddress local= InetSocketAddress (Ipv4Address::GetAny (), port);
@@ -1049,7 +1054,7 @@ for (int i=pathLen-2;i>=0;i--)
          sinkSocket[i]->Listen();
          sinkSocket[i]->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
        }
-  mainSourceSocket->Connect (InetSocketAddress (adhocInterfaces.GetAddress (this->rout[1]), port)); //connecting main source socket
+  mainSourceSocket->Connect (InetSocketAddress (adhocInterfaces.GetAddress (rout[1]), port)); //connecting main source socket
   mainSourceSocket->SetSendCallback (MakeCallback (&Flow::WriteUntilBufferFull,this));
   WriteUntilBufferFull (mainSourceSocket, mainSourceSocket->GetTxAvailable ()); 
 

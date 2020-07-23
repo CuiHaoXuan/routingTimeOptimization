@@ -110,15 +110,15 @@ Flow::Flow()
 //###################### main() ###########################
 int main (int argc, char *argv[])
 {
-  int nSinks=2;
+  int nSinks=1;
   int64_t streamIndex = 0; // used to get consistent mobility across scenarios
-  double totalTime=200;
+  double totalTime=100;
   uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
   uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
   int nWifi=50;
   double txp=7.5;
   double X=300.0;
-  double Y=150.0;
+  double Y=1500.0;
   double Z=50.0;
 
   
@@ -172,7 +172,7 @@ switch (mobilityModel)
     }
 
   std::stringstream ss;
-  ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks<<routingName<<"_"<<mobilityName<<"_"<<streamIndex;
+  ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks<<routingName<<"_"<<mobilityName<< "_"<<streamIndex;
   std::string tr_name (ss.str ());
   
   NS_LOG_UNCOND ("Starting the simulation...");
@@ -342,7 +342,7 @@ Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
       uint32_t toWrite = writeSize - dataOffset;
       toWrite = std::min (toWrite, left);
       toWrite = std::min (toWrite, sourceSocket->GetTxAvailable ());
-      int amountSent = sourceSocket->Send (&data[dataOffset], toWrite, 0);
+      int amountSent = sourceSocket->Send (&data[dataOffset], toWrite, 0); 
  
       if(amountSent < 0)
         {
