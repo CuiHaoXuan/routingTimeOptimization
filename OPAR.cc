@@ -75,7 +75,7 @@ void removeLowestLifetimes(double **, int *);
 int routLen(int *);
 
 static double txp=7.5;
-static double TrRange=100;
+static double TrRange=200;
 static const uint16_t port = 50000;
 static const uint32_t totalRxBytes = 5000000;
 static Ipv4InterfaceContainer adhocInterfaces;
@@ -92,7 +92,7 @@ static Ptr<Socket> mobilityTrackingSocket[nWifi];
 static double posMatrix[nWifi][12]={};//each row includes three sets of (time,x,y,z) 
 static int traceCount=0;
 static double totalTime=100;
-static const double pathLenWeight=0.5;// 0 <= pathLenWeight <= 1. pathLenWeight=1 leads to shortest path, pathLenWeight=0 leads to the path with longest lifeTime
+static const double pathLenWeight=1;// 0 <= pathLenWeight <= 1. pathLenWeight=1 leads to shortest path, pathLenWeight=0 leads to the path with longest lifeTime
 static const double pathLifetimeWeight=1-pathLenWeight;
 
 
@@ -130,6 +130,7 @@ private:
   int posInRout(int );
   void updatePathIfNotAlive();
   void setupIntermediateConnections();
+  void closeIntermediateSockets();
 };
 
 Flow::Flow()
@@ -316,6 +317,17 @@ return count;
 }
 //###################### end of main() ###########################
 void 
+Flow::closeIntermediateSockets()
+{
+  for(int i=0;i<pathLen-2;i++)
+     {
+       this->sourceSocket[i]->Close();
+       this->sinkSocket[i]->Close();
+     }
+  //mainSourceSocket->Close();
+}
+
+void 
 BFS(double netGraph[nWifi][nWifi],uint32_t src,uint32_t dst, int *path)
 {
   int dis[nWifi];//the distance from the src
@@ -424,6 +436,7 @@ Flow::updatePathIfNotAlive()
         }
       else
         {
+          //closeIntermediateSockets();
           setupIntermediateConnections();
         }          
     }
@@ -724,20 +737,15 @@ void
 Flow::ReceivePacket (Ptr<Socket> socket)
  {
   Ptr<Packet> packet = socket->Recv ();
-
-if (socket->GetNode()->GetId()==sink)
+if (socket->GetNode()->GetId()==this->sink)
    {      
       this->packetReceived=true;
       this->currentRxPackets+=1;
       this->currentRxBytes+=packet->GetSize ();
       if(currentRxBytes>=totalRxBytes)
          {   
-            mainSourceSocket->Close ();
-            for (int i=pathLen-2;i>=0;i--)
-                {
-                   sinkSocket[i]->ShutdownRecv();
-                   sourceSocket[i]->Close();
-                }
+            this->mainSourceSocket->Close();
+            closeIntermediateSockets();
             socket->ShutdownRecv();
             this->successfullyTerminated=true;
             this->FCT=Simulator::Now ().GetSeconds ();
@@ -747,16 +755,23 @@ if (socket->GetNode()->GetId()==sink)
     }
 else if (successfullyTerminated)
     {
-      socket->ShutdownRecv();
+      socket->Close();
     }
 else
     {
       int pos;
+      std::stringstream ssPos;
       pos=posInRout(socket->GetNode()->GetId());
-
-      std::stringstream ss;
-      ss<<"10.0.0."<<this->rout[pos]+1;
-      std::string str=ss.str();
+      if(pos==-1)
+         {
+           ssPos<<"10.0.0."<<this->sink+1;//just in case that the packet arrives after the rout change
+            std::cout<<ssPos.str()<<std::endl;
+         }
+      else
+         {     
+           ssPos<<"10.0.0."<<this->rout[pos+1]+1;
+         }
+      std::string str=ssPos.str();
       const char * c = str.c_str();
       Ipv4Address dstAddr (c);
 
@@ -781,22 +796,27 @@ else
 void
 Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
 { 
-      while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0) 
-        {          
-          uint32_t left = totalRxBytes - this->currentRxBytes;
-          uint32_t dataOffset = this->currentTxBytes % writeSize;
-          uint32_t toWrite = writeSize - dataOffset;
-          toWrite = std::min (toWrite, left);
-          toWrite = std::min (toWrite, sourceSocket->GetTxAvailable ());
-          int amountSent = sourceSocket->Send (&data[dataOffset], toWrite, 0);
+  while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0) 
+    { 
+      uint32_t left = totalRxBytes - this->currentRxBytes;
+      uint32_t dataOffset = this->currentTxBytes % writeSize;
+      uint32_t toWrite = writeSize - dataOffset;
+      toWrite = std::min (toWrite, left);
+      toWrite = std::min (toWrite, sourceSocket->GetTxAvailable ());
+      int amountSent = sourceSocket->Send (&data[dataOffset], toWrite, 0); 
  
-          if(amountSent < 0)
-            {
-              return;  
-            }
-          this->currentTxBytes += amountSent;
-          this->currentTxPackets+=1;
+      if(amountSent < 0)
+        {
+          return;  
         }
+      this->currentTxBytes += amountSent;
+      this->currentTxPackets+=1;
+    }
+ 
+  if (this->currentRxBytes>=totalRxBytes)
+     {
+        sourceSocket->Close();
+     }
 }
 
 void
