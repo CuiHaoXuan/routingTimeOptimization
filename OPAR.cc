@@ -92,7 +92,7 @@ static Ptr<Socket> mobilityTrackingSocket[nWifi];
 static double posMatrix[nWifi][12]={};//each row includes three sets of (time,x,y,z) 
 static int traceCount=0;
 static double totalTime=100;
-static const double pathLenWeight=1;// 0 <= pathLenWeight <= 1. pathLenWeight=1 leads to shortest path, pathLenWeight=0 leads to the path with longest lifeTime
+static const double pathLenWeight=0.5;// 0 <= pathLenWeight <= 1. pathLenWeight=1 leads to shortest path, pathLenWeight=0 leads to the path with longest lifeTime
 static const double pathLifetimeWeight=1-pathLenWeight;
 
 
@@ -257,8 +257,7 @@ switch (mobilityModel)
   std::cout<<"Setting up "<<nSinks<<" connections..."<<std::endl;
   
   for (int i = 0; i < nSinks; i++)
-     {  
-        std::cout<<"connection "<<i+1<<" is configuring..."<<std::endl;
+     {          
         UAVflow[i].source=i*2;
         UAVflow[i].sink=i*2+1;     
         UAVflow[i].setupConnection(port,adhocInterfaces,adhocNodes);
@@ -318,8 +317,8 @@ Flow::closeIntermediateSockets()
 {
   for(int i=0;i<nWifi;i++)
      {
-       this->sourceSocket[i]->Close();
-       this->sinkSocket[i]->Close();
+       this->sourceSocket[i]->ShutdownSend();
+       this->sinkSocket[i]->ShutdownRecv();
      }
 }
 
@@ -423,15 +422,18 @@ removeLowestLifetimes(double netGraph[nWifi][nWifi], int *path)
 void 
 Flow::updatePathIfNotAlive()
 {
-  if(!(this->packetReceived))
-    { 
-      this->setupConnection(port,adhocInterfaces,adhocNodes);          
-    }
-  else
+  if(!this->successfullyTerminated)
     {
-      this->packetReceived=false;
-      Simulator::Schedule (Seconds (1.0), &Flow::updatePathIfNotAlive,this);
-    }    
+      if(!(this->packetReceived))
+        { 
+          this->setupConnection(port,adhocInterfaces,adhocNodes);          
+        }
+      else
+        {
+          this->packetReceived=false;
+          Simulator::Schedule (Seconds (1.0), &Flow::updatePathIfNotAlive,this);
+         }   
+      } 
 }
 
 void 
@@ -731,10 +733,10 @@ Flow::ReceivePacket (Ptr<Socket> socket)
        this->currentRxPackets+=1;
        this->currentRxBytes+=packet->GetSize ();
        if(currentRxBytes>=totalRxBytes)
-          {             
+          {           
+            this->sourceSocket[this->source]->Close();
+            socket->Close();
             closeIntermediateSockets();
-            this->sourceSocket[this->source]->ShutdownSend();
-            socket->ShutdownRecv();
             this->successfullyTerminated=true;
             this->FCT=Simulator::Now ().GetSeconds ();
             this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps 
@@ -969,12 +971,12 @@ Flow::findRout()
   else
      {
        this->pathLen=routLen(this->rout);
-/*
+
        std::cout<<"time: "<<Simulator::Now ().GetSeconds ()<<": The path is: ";
        for(int i=0;i<=pathLen;i++)
            std::cout<<this->rout[i]<<" ";
        std::cout<<std::endl;
-*/
+
       } 
 }
 
