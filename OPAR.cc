@@ -76,7 +76,7 @@ int routLen(int *);
 bool isSamePath(int*,int*);
 
 static double txp=7.5;
-static double TrRange=200;
+static double TrRange=138;
 static const uint16_t port = 50000;
 static const uint32_t totalRxBytes = 5000000;
 static Ipv4InterfaceContainer adhocInterfaces;
@@ -995,6 +995,10 @@ Flow::findRout()
           this->pathLen=routLen(this->rout);
           this->printRout();
           sendFromNewPath();
+        }
+      else
+        {
+          Simulator::Schedule (Seconds (routCheckTime), &Flow::updatePathIfNotAlive,this);
         }
     } 
 }
