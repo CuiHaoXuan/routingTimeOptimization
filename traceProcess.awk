@@ -1,7 +1,7 @@
 BEGIN{
        aodvBytes=0
        aodvPackets=0
-       tmax=75.695
+       tmax=182.43
 
 }
 

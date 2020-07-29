@@ -76,11 +76,12 @@ class Flow
 {
 public:
   Flow();
-  void setupConnection(int,int,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+  void setupConnection(int,int,int,uint16_t,Ipv4InterfaceContainer,NodeContainer);
 
   double throughput;
   double FCT;//flow completion time
   bool successfullyTerminated;
+  int flowNo;
 
 private:
   uint32_t currentTxBytes;
@@ -171,6 +172,9 @@ switch (mobilityModel)
       NS_FATAL_ERROR ("No such model:" << mobilityModel);
     }
 
+    std::cout<<routingName<<", total time: "<<totalTime<<", no. UAVs: "<<nWifi<<", no. Conections: "<<nSinks<<std::endl;
+  std::cout<<"X: "<<X<<", Y: "<<Y<<", Z: "<<Z<<", Mobility model: "<<mobilityName<<", stream Index: "<<streamIndex<<std::endl;  
+
   std::stringstream ss;
   ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks<<routingName<<"_"<<mobilityName<< "_"<<streamIndex;
   std::string tr_name (ss.str ());
@@ -236,10 +240,11 @@ switch (mobilityModel)
   // Create the connections...
 
   Flow UAVflow[nSinks];
+  std::cout<<"Setting up "<<nSinks<<" connections..."<<std::endl;
   
   for (int i = 0; i < nSinks; i++)
      {        
-        UAVflow[i].setupConnection(i*2,i*2+1,port,adhocInterfaces,adhocNodes);
+        UAVflow[i].setupConnection(i*2,i*2+1,i,port,adhocInterfaces,adhocNodes);
      }
      
   // One can toggle the comment for the following line on or off to see  
@@ -281,7 +286,7 @@ switch (mobilityModel)
               count++;
               throughput+=UAVflow[i].throughput;
               FCT+=UAVflow[i].FCT;
-              std::cout<<"Flow no. "<<i+1<<":  Throughput= "<<UAVflow[i].throughput<<",  FCT= "<<UAVflow[i].FCT<<std::endl;
+              std::cout<<"Flow no. "<<UAVflow[i].flowNo<<":  Throughput= "<<UAVflow[i].throughput<<",  FCT= "<<UAVflow[i].FCT<<std::endl;
             }
       }
   std::cout<<count<< " flows out of total "<<nSinks<<" flows completed successfully."<<std::endl;
@@ -301,6 +306,7 @@ Flow::CwndTracer (uint32_t oldval, uint32_t newval)
 void 
 Flow::accept(Ptr<Socket> socket,const ns3::Address& from)
 {
+    //std::cout<<"Accept for flow No. "<<this->flowNo<<std::endl;
     socket->SetRecvCallback (MakeCallback (&Flow::ReceivePacket,this));
 }
 
@@ -318,7 +324,7 @@ Flow::ReceivePacket (Ptr<Socket> socket)
          this->successfullyTerminated=true;
          this->FCT=Simulator::Now ().GetSeconds ();
          this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps 
-         std::cout<<"currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<", FCT: "<<this->FCT<<std::endl;
+         std::cout<<"Flow "<<this->flowNo<<": currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<", FCT: "<<this->FCT<<std::endl;
       }
    SocketIpTosTag tosTag;
    if (packet->RemovePacketTag (tosTag))
@@ -531,35 +537,30 @@ setupIP(NetDeviceContainer adhocDevices)
 }
 
 void 
-Flow::setupConnection(int source,int destination,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
+Flow::setupConnection(int source,int destination, int flowNo,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
 {
+  this->flowNo=flowNo;
  // Create and bind the sink socket...
   TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
   Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
-  //Ptr<Socket> sinkSocket; 
   sinkSocket = Socket::CreateSocket (adhocNodes.Get (destination), TcpSocketFactory::GetTypeId ());
   InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), port);
   sinkSocket->Bind(local);
   sinkSocket->Listen();
 
-
-  // Create a source to send packets.  Instead of a full Application
-  // and the helper APIs you might see in other example files, this example
-  // will use sockets directly and register some socket callbacks as a sending
-  // "Application".
-
   // Create and bind the source socket...
-  //Ptr<Socket> sourceSocket;
   sourceSocket = Socket::CreateSocket (adhocNodes.Get (source), TcpSocketFactory::GetTypeId ());
   sourceSocket->Bind ();
+
+//begin implementation of sending "Application"
+  NS_LOG_LOGIC ("Starting flow at time " <<  Simulator::Now ().GetSeconds ());
+  sourceSocket->Connect (InetSocketAddress (adhocInterfaces.GetAddress (destination), port)); //connect
 
   sinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
   // Trace changes to the congestion window
   Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&Flow::CwndTracer,this));
 
-//begin implementation of sending "Application"
-  NS_LOG_LOGIC ("Starting flow at time " <<  Simulator::Now ().GetSeconds ());
-  sourceSocket->Connect (InetSocketAddress (adhocInterfaces.GetAddress (destination), port)); //connect
+
   
   // tell the tcp implementation to call WriteUntilBufferFull again
   // if we blocked and new tx buffer space becomes available
