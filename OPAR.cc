@@ -76,7 +76,7 @@ int routLen(int *);
 bool isSamePath(int*,int*);
 
 static double txp=7.5;
-static double TrRange=138;
+static double TrRange=138.8;//Transmit range: for txp=7.5 dbm it is 138.8 m
 static const uint16_t port = 50000;
 static const uint32_t totalRxBytes = 5000000;
 static Ipv4InterfaceContainer adhocInterfaces;
@@ -93,9 +93,9 @@ static Ptr<Socket> mobilityTrackingSocket[nWifi];
 static double posMatrix[nWifi][12]={};//each row includes three sets of (time,x,y,z) 
 static int traceCount=0;
 static double totalTime=100;
-static const double pathLenWeight=0.5;// 0 <= pathLenWeight <= 1. pathLenWeight=1 leads to shortest path, pathLenWeight=0 leads to the path with longest lifeTime
-static const double pathLifetimeWeight=1-pathLenWeight;
-static double routCheckTime=0.1;//the rout is checked each routCheckTime second
+static double pathLenWeight=0.5;// 0 <= pathLenWeight <= 1. pathLenWeight=1 leads to shortest path, pathLenWeight=0 leads to the path with longest lifeTime
+static double pathLifetimeWeight=1-pathLenWeight;
+static double routCheckTime=0.3;//the rout is checked each routCheckTime second
 
 
 class Flow
@@ -105,16 +105,17 @@ public:
   void setupConnection(uint32_t,uint32_t,int);  
   
   double throughput;
+  double goodput;
   double FCT;//flow completion time
   bool successfullyTerminated;
   uint32_t source;
   uint32_t sink;
   int flowNo;
+  uint32_t currentTxBytes;
+  uint32_t currentRxBytes;
 
 private:
-  uint32_t currentTxBytes;
   uint32_t currentTxPackets;
-  uint32_t currentRxBytes;
   uint32_t currentRxPackets;
   int pathLen;
   int rout[nWifi];
@@ -137,11 +138,12 @@ private:
 
 Flow::Flow()
   : throughput(0),
+    goodput(0),
     FCT(0),
     successfullyTerminated(false),
     currentTxBytes(0),
-    currentTxPackets(0),
     currentRxBytes(0),
+    currentTxPackets(0),
     currentRxPackets(0),
     pathLen(0),
     packetReceived(false)
@@ -175,6 +177,7 @@ int main (int argc, char *argv[])
   cmd.AddValue("Y","Area Length to echo",Y);
   cmd.AddValue("Z","Area height to echo",Z);
   cmd.AddValue("routCheckTime","routCheckTime to echo",routCheckTime);
+  cmd.AddValue("pathLenWeight","Path length weight to echo",pathLenWeight);
   cmd.Parse (argc, argv);
 
   std::string phyMode ("DsssRate11Mbps");
@@ -198,7 +201,7 @@ switch (mobilityModel)
   std::cout<<"Trans. Range: "<<TrRange<<", X: "<<X<<", Y: "<<Y<<", Z: "<<Z<<", Mobility model: "<<mobilityName<<", stream Index: "<<streamIndex<<std::endl; 
 
   std::stringstream ss;
-  ss<<"traceFiles/testOPAR_UAV"<<nWifi<<"Con"<<nSinks<<"_"<<mobilityName<< "_"<<streamIndex;
+  ss<<"traceFiles/OPAR_UAV"<<nWifi<<"Con"<<nSinks<<"_"<<mobilityName<< "_"<<streamIndex;
   std::string tr_name (ss.str ());
   
   NS_LOG_UNCOND ("Starting the simulation...");
@@ -293,20 +296,27 @@ switch (mobilityModel)
 
   NS_LOG_UNCOND ("End of simulation...");
   double throughput=0;
+  double goodput=0;
   double FCT=0;//flow completion time
   int count=0;
   for (int i = 0; i < nSinks; i++)
      {
-         if(UAVflow[i].successfullyTerminated)
-           {
-              count++;
-              throughput+=UAVflow[i].throughput;
-              FCT+=UAVflow[i].FCT;
-              std::cout<<"Flow no. "<<UAVflow[i].flowNo<<":  Throughput= "<<UAVflow[i].throughput<<",  FCT= "<<UAVflow[i].FCT<<std::endl;
-            }
+       throughput+=UAVflow[i].throughput;
+       FCT+=UAVflow[i].FCT;
+       if(UAVflow[i].successfullyTerminated)
+         {
+           count++;
+           goodput+=UAVflow[i].goodput;
+         }
+       else
+         {
+           UAVflow[i].goodput=(double(UAVflow[i].currentRxBytes)/double(UAVflow[i].currentTxBytes));
+           goodput+=UAVflow[i].goodput;
+         }
+       std::cout<<"Flow no. "<<UAVflow[i].flowNo<<":  Throughput= "<<UAVflow[i].throughput<<":  Goodput= "<<UAVflow[i].goodput<<",  FCT= "<<UAVflow[i].FCT<<std::endl;
       }
   std::cout<<count<< " flows out of total "<<nSinks<<" flows completed successfully."<<std::endl;
-  std::cout<<"Average throughput: "<<throughput/count<<", Average FCT: "<<FCT/count<<std::endl; 
+  std::cout<<"Average throughput: "<<throughput/nSinks<<", Average Goodput: "<<goodput/nSinks<<", Average FCT: "<<FCT/count<<std::endl; 
   Simulator::Destroy ();
 return count;
   
@@ -428,7 +438,7 @@ removeLowestLifetimes(double netGraph[nWifi][nWifi], int *path)
 
 void 
 Flow::updatePathIfNotAlive()
-{
+{//std::cout<<"Time "<<Simulator::Now ().GetSeconds ()<<": updatePathIfNotAlive"<<std::endl;
   if(!(this->successfullyTerminated))
     {
       if(!(this->packetReceived))
@@ -727,7 +737,7 @@ Flow::CwndTracer (uint32_t oldval, uint32_t newval)
 void 
 Flow::accept(Ptr<Socket> socket,const ns3::Address& from)
 { 
-    //std::cout<<"Time: "<<Simulator::Now ().GetSeconds ()<<", Accept for flow No. "<<this->flowNo<<", node "<<socket->GetNode()->GetId()<<", source: "<<this->source<<", sink: "<<this->sink<<std::endl;
+    //std::cout<<"Time: "<<Simulator::Now ().GetSeconds ()<<", Accept for flow No. "<<this->flowNo<<", node "<<socket->GetNode()->GetId()/*<<", source: "<<this->source<<", sink: "<<this->sink*/<<", socket "<<socket<<std::endl;
     socket->SetRecvCallback (MakeCallback (&Flow::ReceivePacket,this));
 }
 
@@ -740,13 +750,15 @@ Flow::ReceivePacket (Ptr<Socket> socket)
        this->packetReceived=true;
        this->currentRxPackets+=1;
        this->currentRxBytes+=packet->GetSize ();
+if (this->currentRxPackets%1000==0) std::cout<<"Time "<<Simulator::Now ().GetSeconds ()<<", Flow no. "<<this->flowNo<<", received "<<currentRxPackets<<" packets"<<std::endl;
        if(this->currentRxBytes>=totalRxBytes && !(this->successfullyTerminated))
           {             
             this->successfullyTerminated=true;
             socket->ShutdownRecv();
             this->FCT=Simulator::Now ().GetSeconds ();
             this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps 
-            std::cout<<"Flow "<<this->flowNo<< ": currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<", FCT: "<<this->FCT<<std::endl;
+            this->goodput= (double(this->currentRxBytes)/double(this->currentTxBytes));
+            std::cout<<"Flow "<<this->flowNo<<": currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<", Goodput= "<<this->goodput<<",  Throuput= "<< this->throughput<<", FCT: "<<this->FCT<<std::endl;
           }
      }
   else if (this->successfullyTerminated)
@@ -784,7 +796,7 @@ Flow::ReceivePacket (Ptr<Socket> socket)
 
 void
 Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
-{ 
+{ //std::cout<<"newWrite"<<std::endl;
   while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0) 
     { 
       uint32_t left = totalRxBytes - this->currentRxBytes;
@@ -801,7 +813,8 @@ Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
       this->currentTxPackets+=1;
     } 
   if (this->successfullyTerminated)
-     {
+     {  
+        //std::cout<<"Time "<<Simulator::Now ().GetSeconds ()<<": successfully terminated"<<std::endl;
         sourceSocket->Close();
      }
 }
@@ -993,8 +1006,9 @@ Flow::findRout()
       if(!isSamePath(this->rout,this->oldRout))
         {
           this->pathLen=routLen(this->rout);
-          this->printRout();
+          //this->printRout();
           sendFromNewPath();
+          Simulator::Schedule (Seconds (routCheckTime), &Flow::updatePathIfNotAlive,this);
         }
       else
         {
@@ -1026,9 +1040,6 @@ Flow::sendFromNewPath()
   WriteUntilBufferFull (mainSourceSocket, mainSourceSocket->GetTxAvailable ());
   // Trace changes to the congestion window
   Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&Flow::CwndTracer,this)); 
-
-  this->packetReceived=true;
-  this->updatePathIfNotAlive();
 }
 
 int 

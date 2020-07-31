@@ -79,14 +79,17 @@ public:
   void setupConnection(int,int,int,uint16_t,Ipv4InterfaceContainer,NodeContainer);
 
   double throughput;
+  double goodput;
   double FCT;//flow completion time
   bool successfullyTerminated;
+  uint32_t source;
+  uint32_t sink;
   int flowNo;
+  uint32_t currentTxBytes;
+  uint32_t currentRxBytes;
 
 private:
-  uint32_t currentTxBytes;
-  uint32_t currentTxPackets;
-  uint32_t currentRxBytes;
+  uint32_t currentTxPackets; 
   uint32_t currentRxPackets;
   Ptr<Socket> sourceSocket;
   Ptr<Socket> sinkSocket;
@@ -99,11 +102,12 @@ private:
 
 Flow::Flow()
   : throughput(0),
+    goodput(0),
     FCT(0),
     successfullyTerminated(false),
     currentTxBytes(0),
-    currentTxPackets(0),
     currentRxBytes(0),
+    currentTxPackets(0),
     currentRxPackets(0)
 {
 }
@@ -277,20 +281,27 @@ switch (mobilityModel)
 
   NS_LOG_UNCOND ("End of simulation...");
   double throughput=0;
+  double goodput=0;
   double FCT=0;//flow completion time
   int count=0;
   for (int i = 0; i < nSinks; i++)
      {
-         if(UAVflow[i].successfullyTerminated)
-           {
-              count++;
-              throughput+=UAVflow[i].throughput;
-              FCT+=UAVflow[i].FCT;
-              std::cout<<"Flow no. "<<UAVflow[i].flowNo<<":  Throughput= "<<UAVflow[i].throughput<<",  FCT= "<<UAVflow[i].FCT<<std::endl;
-            }
+       throughput+=UAVflow[i].throughput;
+       FCT+=UAVflow[i].FCT;
+       if(UAVflow[i].successfullyTerminated)
+         {
+           count++;
+           goodput+=UAVflow[i].goodput;
+         }
+       else
+         {
+           UAVflow[i].goodput=(double(UAVflow[i].currentRxBytes)/double(UAVflow[i].currentTxBytes));
+           goodput+=UAVflow[i].goodput;
+         } 
+       std::cout<<"Flow no. "<<UAVflow[i].flowNo<<":  Throughput= "<<UAVflow[i].throughput<<":  Goodput= "<<UAVflow[i].goodput<<",  FCT= "<<UAVflow[i].FCT<<std::endl;
       }
   std::cout<<count<< " flows out of total "<<nSinks<<" flows completed successfully."<<std::endl;
-  std::cout<<"Average throughput: "<<throughput/count<<", Average FCT: "<<FCT/count<<std::endl; 
+  std::cout<<"Average throughput: "<<throughput/nSinks<<", Average Goodput: "<<goodput/nSinks<<", Average FCT: "<<FCT/count<<std::endl;
   Simulator::Destroy ();
 return count;
   
@@ -313,18 +324,19 @@ Flow::accept(Ptr<Socket> socket,const ns3::Address& from)
 void 
 Flow::ReceivePacket (Ptr<Socket> socket)
  {
-
    Ptr<Packet> packet = socket->Recv ();
    this->currentRxPackets+=1;
    this->currentRxBytes+=packet->GetSize ();
+//if (this->currentRxPackets%1000==0) std::cout<<"Time "<<Simulator::Now ().GetSeconds ()<<", received "<<currentRxPackets<<" packets"<<std::endl;
    if(currentRxBytes>=totalRxBytes)
       {   
          sourceSocket->Close ();
          socket->ShutdownRecv();
          this->successfullyTerminated=true;
          this->FCT=Simulator::Now ().GetSeconds ();
-         this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps 
-         std::cout<<"Flow "<<this->flowNo<<": currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<",  Throuput= "<< this->throughput<<", FCT: "<<this->FCT<<std::endl;
+         this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps
+         this->goodput= (double(this->currentRxBytes)/double(this->currentTxBytes));
+         std::cout<<"Flow "<<this->flowNo<<": currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<", Goodput= "<<this->goodput<<",  Throuput= "<< this->throughput<<", FCT: "<<this->FCT<<std::endl;
       }
    SocketIpTosTag tosTag;
    if (packet->RemovePacketTag (tosTag))
