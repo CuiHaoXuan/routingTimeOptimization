@@ -260,24 +260,24 @@ switch (mobilityModel)
   //Ask for ASCII and pcap traces of network traffic
   
   AsciiTraceHelper ascii;
-  Ptr<FlowMonitor> flowmon;
+  //Ptr<FlowMonitor> flowmon;
 
-  wifiPhy.EnablePcapAll (tr_name);
+  //wifiPhy.EnablePcapAll (tr_name);
   wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
-  MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
+  //MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
 
-  AnimationInterface anim (tr_name+".xml");
-  anim.SetMaxPktsPerTraceFile (200000000);
+  //AnimationInterface anim (tr_name+".xml");
+  //anim.SetMaxPktsPerTraceFile (200000000);
 
-  FlowMonitorHelper flowmonHelper;
-  flowmon = flowmonHelper.InstallAll (); 
+  //FlowMonitorHelper flowmonHelper;
+  //flowmon = flowmonHelper.InstallAll (); 
   
   // Finally, set up the simulator to run.  The 'totalTime' second hard limit is a
   // failsafe in case some change above causes the simulation to never end
   Simulator::Stop (Seconds (totalTime));
   Simulator::Run ();
   
-  flowmon->SerializeToXmlFile ((tr_name + ".flowmon").c_str(), true, true);
+  //flowmon->SerializeToXmlFile ((tr_name + ".flowmon").c_str(), true, true);
 
   NS_LOG_UNCOND ("End of simulation...");
   double throughput=0;

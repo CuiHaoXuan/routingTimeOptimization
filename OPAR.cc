@@ -78,7 +78,7 @@ bool isSamePath(int*,int*);
 static double txp=7.5;
 static double TrRange=138.8;//Transmit range: for txp=7.5 dbm it is 138.8 m
 static const uint16_t port = 50000;
-static const uint32_t totalRxBytes = 5000000;
+static const uint32_t totalRxBytes = 5000000;//5MB
 static Ipv4InterfaceContainer adhocInterfaces;
 static NetDeviceContainer adhocDevices;
 static NodeContainer adhocNodes;
@@ -275,24 +275,24 @@ switch (mobilityModel)
   //Ask for ASCII and pcap traces of network traffic
   
   AsciiTraceHelper ascii;
-  Ptr<FlowMonitor> flowmon;
+  //Ptr<FlowMonitor> flowmon;
 
   wifiPhy.EnablePcapAll (tr_name);
   wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
-  MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
+  //MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
 
   AnimationInterface anim (tr_name+".xml");
   anim.SetMaxPktsPerTraceFile (200000000);
 
-  FlowMonitorHelper flowmonHelper;
-  flowmon = flowmonHelper.InstallAll (); 
+  //FlowMonitorHelper flowmonHelper;
+  //flowmon = flowmonHelper.InstallAll (); 
   
   // Finally, set up the simulator to run.  The 'totalTime' second hard limit is a
   // failsafe in case some change above causes the simulation to never end
   Simulator::Stop (Seconds (totalTime));
   Simulator::Run ();
   
-  flowmon->SerializeToXmlFile ((tr_name + ".flowmon").c_str(), true, true);
+  //flowmon->SerializeToXmlFile ((tr_name + ".flowmon").c_str(), true, true);
 
   NS_LOG_UNCOND ("End of simulation...");
   double throughput=0;
@@ -737,8 +737,7 @@ Flow::CwndTracer (uint32_t oldval, uint32_t newval)
 void 
 Flow::accept(Ptr<Socket> socket,const ns3::Address& from)
 { 
-    //std::cout<<"Time: "<<Simulator::Now ().GetSeconds ()<<", Accept for flow No. "<<this->flowNo<<", node "<<socket->GetNode()->GetId()/*<<", source: "<<this->source<<", sink: "<<this->sink*/<<", socket "<<socket<<std::endl;
-    socket->SetRecvCallback (MakeCallback (&Flow::ReceivePacket,this));
+  socket->SetRecvCallback (MakeCallback (&Flow::ReceivePacket,this));
 }
 
 void 
@@ -746,7 +745,12 @@ Flow::ReceivePacket (Ptr<Socket> socket)
  {
   Ptr<Packet> packet = socket->Recv ();
   if (socket->GetNode()->GetId()==this->sink)
-     {      
+     { 
+       if(this->successfullyTerminated)//an intermediate node delivers a packet after the successfully termiantion of the flow
+         {
+           socket->ShutdownRecv();
+           return;
+         }     
        this->packetReceived=true;
        this->currentRxPackets+=1;
        this->currentRxBytes+=packet->GetSize ();
