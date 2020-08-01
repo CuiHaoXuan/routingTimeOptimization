@@ -121,6 +121,7 @@ private:
   int rout[nWifi];
   int oldRout[nWifi];
   bool packetReceived;
+  bool noRout;
   
   Ptr<Socket> mainSourceSocket;
   Ptr<Socket> intermediatesourceSocket;
@@ -146,7 +147,8 @@ Flow::Flow()
     currentTxPackets(0),
     currentRxPackets(0),
     pathLen(0),
-    packetReceived(false)
+    packetReceived(false),
+    noRout(true)
 {
    for(int i=0;i<nWifi;i++)
       {
@@ -277,7 +279,7 @@ switch (mobilityModel)
   AsciiTraceHelper ascii;
   //Ptr<FlowMonitor> flowmon;
 
-  wifiPhy.EnablePcapAll (tr_name);
+  //wifiPhy.EnablePcapAll (tr_name);
   wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
   //MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
 
@@ -438,7 +440,7 @@ removeLowestLifetimes(double netGraph[nWifi][nWifi], int *path)
 
 void 
 Flow::updatePathIfNotAlive()
-{//std::cout<<"Time "<<Simulator::Now ().GetSeconds ()<<": updatePathIfNotAlive"<<std::endl;
+{
   if(!(this->successfullyTerminated))
     {
       if(!(this->packetReceived))
@@ -748,17 +750,16 @@ Flow::ReceivePacket (Ptr<Socket> socket)
      { 
        if(this->successfullyTerminated)//an intermediate node delivers a packet after the successfully termiantion of the flow
          {
-           socket->ShutdownRecv();
            return;
          }     
        this->packetReceived=true;
        this->currentRxPackets+=1;
        this->currentRxBytes+=packet->GetSize ();
-if (this->currentRxPackets%1000==0) std::cout<<"Time "<<Simulator::Now ().GetSeconds ()<<", Flow no. "<<this->flowNo<<", received "<<currentRxPackets<<" packets"<<std::endl;
+//if (this->currentRxPackets%1000==0) std::cout<<"Time "<<Simulator::Now ().GetSeconds ()<<", Flow no. "<<this->flowNo<<", received "<<currentRxPackets<<" packets"<<std::endl;
        if(this->currentRxBytes>=totalRxBytes && !(this->successfullyTerminated))
           {             
             this->successfullyTerminated=true;
-            socket->ShutdownRecv();
+            this->mainSourceSocket->Close();            
             this->FCT=Simulator::Now ().GetSeconds ();
             this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps 
             this->goodput= (double(this->currentRxBytes)/double(this->currentTxBytes));
@@ -767,17 +768,16 @@ if (this->currentRxPackets%1000==0) std::cout<<"Time "<<Simulator::Now ().GetSec
      }
   else if (this->successfullyTerminated)
     {
-      socket->ShutdownRecv();
+      
     }
   else
     {
       int pos;
       std::stringstream ssPos;
       pos=posInRout(socket->GetNode()->GetId());
-      if(pos==-1)
+      if(pos==-1)//the packet arrives after the rout change
          {
-           ssPos<<"10.1.1."<<this->sink+1;//just in case that the packet arrives after the rout change
-           //std::cout<<"Flow no. "<<this->flowNo<<" position -1, send to "<<ssPos.str()<<std::endl;           
+           ssPos<<"10.1.1."<<this->sink+1;
          }
       else
          {     
@@ -800,8 +800,8 @@ if (this->currentRxPackets%1000==0) std::cout<<"Time "<<Simulator::Now ().GetSec
 
 void
 Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
-{ //std::cout<<"newWrite"<<std::endl;
-  while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0) 
+{ 
+  while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0 &&!this->noRout && !this->successfullyTerminated) 
     { 
       uint32_t left = totalRxBytes - this->currentRxBytes;
       uint32_t dataOffset = this->currentTxBytes % writeSize;
@@ -1002,11 +1002,12 @@ Flow::findRout()
 
   if(this->rout[0]==-1)//there is no rout
      {
-       //this->pathLen=0;
+       this->noRout=true;
        Simulator::Schedule (Seconds (routCheckTime), &Flow::findRout,this);
      }  
   else
     {
+      this->noRout=false;
       if(!isSamePath(this->rout,this->oldRout))
         {
           this->pathLen=routLen(this->rout);
