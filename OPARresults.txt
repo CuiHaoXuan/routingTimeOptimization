@@ -1,4 +1,4 @@
-#   no. of connections= 1, Mobility stream index= 0    #
+#   no. of connections= 1 , Mobility stream index= 0    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -18,11 +18,11 @@ Time 338.576, Flow no. 0, received 9000 packets
 Flow 0: currentTxBytes= 74040488,  currentRxBytes= 5000416, Goodput= 0.0675362,  Throuput= 0.0414766, FCT: 344.457
 Flow no. 0:  Throughput= 0.0414766:  Goodput= 0.0675362,  FCT= 344.457
 1 flows out of total 1 flows completed successfully.
-Average throughput: 0.0414766, Average Goodput: 0.0675362, Average FCT: 344.457
+Average throughput: 0.0414766 , Average Goodput: 0.0675362 , Average FCT: 344.457
 
 ##########################################
 
-#   no. of connections= 2, Mobility stream index= 0    #
+#   no. of connections= 2 , Mobility stream index= 0    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -52,11 +52,11 @@ Flow 0: currentTxBytes= 112645656,  currentRxBytes= 5000296, Goodput= 0.0443896,
 Flow no. 0:  Throughput= 0.0341263:  Goodput= 0.0443896,  FCT= 418.638
 Flow no. 1:  Throughput= 0.143176:  Goodput= 0.196972,  FCT= 99.7839
 2 flows out of total 2 flows completed successfully.
-Average throughput: 0.0886513, Average Goodput: 0.120681, Average FCT: 259.211
+Average throughput: 0.0886513 , Average Goodput: 0.120681 , Average FCT: 259.211
 
 ##########################################
 
-#   no. of connections= 3, Mobility stream index= 0    #
+#   no. of connections= 3 , Mobility stream index= 0    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -96,11 +96,11 @@ Flow no. 0:  Throughput= 0.0430504:  Goodput= 0.0586617,  FCT= 332.582
 Flow no. 1:  Throughput= 0.103622:  Goodput= 0.161334,  FCT= 137.873
 Flow no. 2:  Throughput= 0.0539056:  Goodput= 0.082331,  FCT= 265.019
 3 flows out of total 3 flows completed successfully.
-Average throughput: 0.0668594, Average Goodput: 0.100776, Average FCT: 245.158
+Average throughput: 0.0668594 , Average Goodput: 0.100776 , Average FCT: 245.158
 
 ##########################################
 
-#   no. of connections= 4, Mobility stream index= 0    #
+#   no. of connections= 4 , Mobility stream index= 0    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -145,11 +145,11 @@ Flow no. 1:  Throughput= 0.104813:  Goodput= 0.190735,  FCT= 136.307
 Flow no. 2:  Throughput= 0.0628742:  Goodput= 0.104243,  FCT= 227.227
 Flow no. 3:  Throughput= 0:  Goodput= 0.0380633,  FCT= 0
 2 flows out of total 4 flows completed successfully.
-Average throughput: 0.0419218, Average Goodput: 0.0921802, Average FCT: 181.767
+Average throughput: 0.0419218 , Average Goodput: 0.0921802 , Average FCT: 181.767
 
 ##########################################
 
-#   no. of connections= 5, Mobility stream index= 0    #
+#   no. of connections= 5 , Mobility stream index= 0    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -200,11 +200,11 @@ Flow no. 2:  Throughput= 0.16461:  Goodput= 0.275949,  FCT= 86.7926
 Flow no. 3:  Throughput= 0:  Goodput= 0.0327405,  FCT= 0
 Flow no. 4:  Throughput= 0.29473:  Goodput= 1.03776,  FCT= 48.4714
 3 flows out of total 5 flows completed successfully.
-Average throughput: 0.113363, Average Goodput: 0.307607, Average FCT: 89.3991
+Average throughput: 0.113363 , Average Goodput: 0.307607 , Average FCT: 89.3991
 
 ##########################################
 
-#   no. of connections= 6, Mobility stream index= 0    #
+#   no. of connections= 6 , Mobility stream index= 0    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -223,11 +223,11 @@ Flow no. 3:  Throughput= 0:  Goodput= 0.0163022,  FCT= 0
 Flow no. 4:  Throughput= 0.183835:  Goodput= 0.542005,  FCT= 77.7111
 Flow no. 5:  Throughput= 0.0428112:  Goodput= 0.0610914,  FCT= 333.717
 4 flows out of total 6 flows completed successfully.
-Average throughput: 0.0834061, Average Goodput: 0.187172, Average FCT: 157.091
+Average throughput: 0.0834061 , Average Goodput: 0.187172 , Average FCT: 157.091
 
 ##########################################
 
-#   no. of connections= 7, Mobility stream index= 0    #
+#   no. of connections= 7 , Mobility stream index= 0    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -248,11 +248,11 @@ Flow no. 4:  Throughput= 0.189479:  Goodput= 0.532487,  FCT= 75.3999
 Flow no. 5:  Throughput= 0.0502069:  Goodput= 0.0703486,  FCT= 285.305
 Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
 5 flows out of total 7 flows completed successfully.
-Average throughput: 0.0814232, Average Goodput: 0.171147, Average FCT: 178.511
+Average throughput: 0.0814232 , Average Goodput: 0.171147 , Average FCT: 178.511
 
 ##########################################
 
-#   no. of connections= 8, Mobility stream index= 0    #
+#   no. of connections= 8 , Mobility stream index= 0    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -274,11 +274,11 @@ Flow no. 5:  Throughput= 0.0463261:  Goodput= 0.0785109,  FCT= 308.379
 Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 7:  Throughput= 0:  Goodput= 0,  FCT= 0
 5 flows out of total 8 flows completed successfully.
-Average throughput: 0.0620775, Average Goodput: 0.153614, Average FCT: 221.392
+Average throughput: 0.0620775 , Average Goodput: 0.153614 , Average FCT: 221.392
 
 ##########################################
 
-#   no. of connections= 9, Mobility stream index= 0    #
+#   no. of connections= 9 , Mobility stream index= 0    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -302,11 +302,11 @@ Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 7:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 8:  Throughput= 0.0363584:  Goodput= 0.0771504,  FCT= 392.953
 6 flows out of total 9 flows completed successfully.
-Average throughput: 0.0546999, Average Goodput: 0.157433, Average FCT: 228.432
+Average throughput: 0.0546999 , Average Goodput: 0.157433 , Average FCT: 228.432
 
 ##########################################
 
-#   no. of connections= 10, Mobility stream index= 0    #
+#   no. of connections= 10 , Mobility stream index= 0    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -330,11 +330,11 @@ Flow no. 7:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 8:  Throughput= 0.0423324:  Goodput= 0.0923921,  FCT= 337.491
 Flow no. 9:  Throughput= 0.0745149:  Goodput= 0.412971,  FCT= 191.72
 5 flows out of total 10 flows completed successfully.
-Average throughput: 0.040996, Average Goodput: 0.122105, Average FCT: 221.176
+Average throughput: 0.040996 , Average Goodput: 0.122105 , Average FCT: 221.176
 
 ##########################################
 
-#   no. of connections= 1, Mobility stream index= 1    #
+#   no. of connections= 1 , Mobility stream index= 1    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -345,11 +345,11 @@ Setting up 1 connections...
 Flow 0: currentTxBytes= 5131064,  currentRxBytes= 5000528, Goodput= 0.97456,  Throuput= 0.933956, FCT: 15.2975
 Flow no. 0:  Throughput= 0.933956:  Goodput= 0.97456,  FCT= 15.2975
 1 flows out of total 1 flows completed successfully.
-Average throughput: 0.933956, Average Goodput: 0.97456, Average FCT: 15.2975
+Average throughput: 0.933956 , Average Goodput: 0.97456 , Average FCT: 15.2975
 
 ##########################################
 
-#   no. of connections= 2, Mobility stream index= 1    #
+#   no. of connections= 2 , Mobility stream index= 1    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -362,11 +362,11 @@ Flow 1: currentTxBytes= 9586304,  currentRxBytes= 5000464, Goodput= 0.521626,  T
 Flow no. 0:  Throughput= 0.91731:  Goodput= 0.97456,  FCT= 15.5751
 Flow no. 1:  Throughput= 0.411451:  Goodput= 0.521626,  FCT= 34.7235
 2 flows out of total 2 flows completed successfully.
-Average throughput: 0.664381, Average Goodput: 0.748093, Average FCT: 25.1493
+Average throughput: 0.664381 , Average Goodput: 0.748093 , Average FCT: 25.1493
 
 ##########################################
 
-#   no. of connections= 3, Mobility stream index= 1    #
+#   no. of connections= 3 , Mobility stream index= 1    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -381,11 +381,11 @@ Flow no. 0:  Throughput= 0.896903:  Goodput= 0.97456,  FCT= 15.9295
 Flow no. 1:  Throughput= 0.0324784:  Goodput= 0.0465488,  FCT= 439.887
 Flow no. 2:  Throughput= 0.0750116:  Goodput= 0.147812,  FCT= 190.457
 3 flows out of total 3 flows completed successfully.
-Average throughput: 0.334798, Average Goodput: 0.38964, Average FCT: 215.424
+Average throughput: 0.334798 , Average Goodput: 0.38964 , Average FCT: 215.424
 
 ##########################################
 
-#   no. of connections= 4, Mobility stream index= 1    #
+#   no. of connections= 4 , Mobility stream index= 1    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -401,11 +401,11 @@ Flow no. 1:  Throughput= 0.0373262:  Goodput= 0.0582084,  FCT= 382.736
 Flow no. 2:  Throughput= 0.0757097:  Goodput= 0.168395,  FCT= 189.31
 Flow no. 3:  Throughput= 0:  Goodput= 0,  FCT= 0
 3 flows out of total 4 flows completed successfully.
-Average throughput: 0.247718, Average Goodput: 0.300291, Average FCT: 196.107
+Average throughput: 0.247718 , Average Goodput: 0.300291 , Average FCT: 196.107
 
 ##########################################
 
-#   no. of connections= 5, Mobility stream index= 1    #
+#   no. of connections= 5 , Mobility stream index= 1    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -423,11 +423,11 @@ Flow no. 2:  Throughput= 0.0647251:  Goodput= 0.143269,  FCT= 220.723
 Flow no. 3:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 4:  Throughput= 0.18101:  Goodput= 0.356777,  FCT= 78.9288
 4 flows out of total 5 flows completed successfully.
-Average throughput: 0.0769748, Average Goodput: 0.1556, Average FCT: 209.182
+Average throughput: 0.0769748 , Average Goodput: 0.1556 , Average FCT: 209.182
 
 ##########################################
 
-#   no. of connections= 6, Mobility stream index= 1    #
+#   no. of connections= 6 , Mobility stream index= 1    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -446,11 +446,11 @@ Flow no. 3:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 4:  Throughput= 0.149659:  Goodput= 0.274216,  FCT= 95.4582
 Flow no. 5:  Throughput= 0.0651849:  Goodput= 0.166501,  FCT= 219.161
 4 flows out of total 6 flows completed successfully.
-Average throughput: 0.0714306, Average Goodput: 0.154319, Average FCT: 178.898
+Average throughput: 0.0714306 , Average Goodput: 0.154319 , Average FCT: 178.898
 
 ##########################################
 
-#   no. of connections= 7, Mobility stream index= 1    #
+#   no. of connections= 7 , Mobility stream index= 1    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -472,11 +472,11 @@ Flow no. 4:  Throughput= 0.13556:  Goodput= 0.260904,  FCT= 105.39
 Flow no. 5:  Throughput= 0.0668452:  Goodput= 0.154423,  FCT= 213.728
 Flow no. 6:  Throughput= 0.0690139:  Goodput= 0.16031,  FCT= 207.007
 6 flows out of total 7 flows completed successfully.
-Average throughput: 0.109581, Average Goodput: 0.245713, Average FCT: 156.168
+Average throughput: 0.109581 , Average Goodput: 0.245713 , Average FCT: 156.168
 
 ##########################################
 
-#   no. of connections= 8, Mobility stream index= 1    #
+#   no. of connections= 8 , Mobility stream index= 1    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -500,11 +500,11 @@ Flow no. 5:  Throughput= 0.0735755:  Goodput= 0.195612,  FCT= 194.182
 Flow no. 6:  Throughput= 0.0616331:  Goodput= 0.114271,  FCT= 231.791
 Flow no. 7:  Throughput= 0.0344827:  Goodput= 0.0683537,  FCT= 414.31
 7 flows out of total 8 flows completed successfully.
-Average throughput: 0.0930822, Average Goodput: 0.277264, Average FCT: 188.695
+Average throughput: 0.0930822 , Average Goodput: 0.277264 , Average FCT: 188.695
 
 ##########################################
 
-#   no. of connections= 9, Mobility stream index= 1    #
+#   no. of connections= 9 , Mobility stream index= 1    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -529,11 +529,11 @@ Flow no. 6:  Throughput= 0.0619619:  Goodput= 0.174939,  FCT= 230.572
 Flow no. 7:  Throughput= 0.0661163:  Goodput= 0.255359,  FCT= 216.074
 Flow no. 8:  Throughput= 0:  Goodput= 0,  FCT= 0
 7 flows out of total 9 flows completed successfully.
-Average throughput: 0.0840328, Average Goodput: 0.198515, Average FCT: 192.333
+Average throughput: 0.0840328 , Average Goodput: 0.198515 , Average FCT: 192.333
 
 ##########################################
 
-#   no. of connections= 10, Mobility stream index= 1    #
+#   no. of connections= 10 , Mobility stream index= 1    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -560,11 +560,11 @@ Flow no. 7:  Throughput= 0.0816069:  Goodput= 0.233351,  FCT= 175.061
 Flow no. 8:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 9:  Throughput= 0.155395:  Goodput= 0.42201,  FCT= 91.9395
 8 flows out of total 10 flows completed successfully.
-Average throughput: 0.10447, Average Goodput: 0.240086, Average FCT: 191.945
+Average throughput: 0.10447 , Average Goodput: 0.240086 , Average FCT: 191.945
 
 ##########################################
 
-#   no. of connections= 1, Mobility stream index= 2    #
+#   no. of connections= 1 , Mobility stream index= 2    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -575,11 +575,11 @@ Setting up 1 connections...
 Flow 0: currentTxBytes= 64010888,  currentRxBytes= 5000384, Goodput= 0.0781177,  Throuput= 0.0532247, FCT: 268.425
 Flow no. 0:  Throughput= 0.0532247:  Goodput= 0.0781177,  FCT= 268.425
 1 flows out of total 1 flows completed successfully.
-Average throughput: 0.0532247, Average Goodput: 0.0781177, Average FCT: 268.425
+Average throughput: 0.0532247 , Average Goodput: 0.0781177 , Average FCT: 268.425
 
 ##########################################
 
-#   no. of connections= 2, Mobility stream index= 2    #
+#   no. of connections= 2 , Mobility stream index= 2    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -592,11 +592,11 @@ Flow 1: currentTxBytes= 82126920,  currentRxBytes= 5000344, Goodput= 0.0608856, 
 Flow no. 0:  Throughput= 0.0461586:  Goodput= 0.0743265,  FCT= 309.518
 Flow no. 1:  Throughput= 0.0396927:  Goodput= 0.0608856,  FCT= 359.932
 2 flows out of total 2 flows completed successfully.
-Average throughput: 0.0429256, Average Goodput: 0.067606, Average FCT: 334.725
+Average throughput: 0.0429256 , Average Goodput: 0.067606 , Average FCT: 334.725
 
 ##########################################
 
-#   no. of connections= 3, Mobility stream index= 2    #
+#   no. of connections= 3 , Mobility stream index= 2    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -611,11 +611,11 @@ Flow no. 0:  Throughput= 0.0472423:  Goodput= 0.0726213,  FCT= 302.403
 Flow no. 1:  Throughput= 0.0436343:  Goodput= 0.079875,  FCT= 327.422
 Flow no. 2:  Throughput= 0.0334747:  Goodput= 0.0516573,  FCT= 426.79
 3 flows out of total 3 flows completed successfully.
-Average throughput: 0.0414504, Average Goodput: 0.0680512, Average FCT: 352.205
+Average throughput: 0.0414504 , Average Goodput: 0.0680512 , Average FCT: 352.205
 
 ##########################################
 
-#   no. of connections= 4, Mobility stream index= 2    #
+#   no. of connections= 4 , Mobility stream index= 2    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -631,11 +631,11 @@ Flow no. 1:  Throughput= 0.0423078:  Goodput= 0.0691807,  FCT= 337.685
 Flow no. 2:  Throughput= 0:  Goodput= 0.030928,  FCT= 0
 Flow no. 3:  Throughput= 0.098456:  Goodput= 0.223379,  FCT= 145.117
 3 flows out of total 4 flows completed successfully.
-Average throughput: 0.056946, Average Goodput: 0.116464, Average FCT: 215.657
+Average throughput: 0.056946 , Average Goodput: 0.116464 , Average FCT: 215.657
 
 ##########################################
 
-#   no. of connections= 5, Mobility stream index= 2    #
+#   no. of connections= 5 , Mobility stream index= 2    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -654,11 +654,11 @@ Flow no. 2:  Throughput= 0.130019:  Goodput= 0.229713,  FCT= 109.882
 Flow no. 3:  Throughput= 0.0373273:  Goodput= 0.0581297,  FCT= 382.754
 Flow no. 4:  Throughput= 0.099181:  Goodput= 0.141101,  FCT= 144.04
 5 flows out of total 5 flows completed successfully.
-Average throughput: 0.0795555, Average Goodput: 0.13568, Average FCT: 228.113
+Average throughput: 0.0795555 , Average Goodput: 0.13568 , Average FCT: 228.113
 
 ##########################################
 
-#   no. of connections= 6, Mobility stream index= 2    #
+#   no. of connections= 6 , Mobility stream index= 2    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -677,11 +677,11 @@ Flow no. 3:  Throughput= 0.0855903:  Goodput= 0.250634,  FCT= 166.924
 Flow no. 4:  Throughput= 0.0323375:  Goodput= 0.0584123,  FCT= 441.803
 Flow no. 5:  Throughput= 0:  Goodput= 0.0393372,  FCT= 0
 4 flows out of total 6 flows completed successfully.
-Average throughput: 0.0439152, Average Goodput: 0.115053, Average FCT: 260.719
+Average throughput: 0.0439152 , Average Goodput: 0.115053 , Average FCT: 260.719
 
 ##########################################
 
-#   no. of connections= 7, Mobility stream index= 2    #
+#   no. of connections= 7 , Mobility stream index= 2    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -703,11 +703,11 @@ Flow no. 4:  Throughput= 0.0566994:  Goodput= 0.109726,  FCT= 251.962
 Flow no. 5:  Throughput= 0.0839424:  Goodput= 0.229881,  FCT= 170.194
 Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
 6 flows out of total 7 flows completed successfully.
-Average throughput: 0.0717728, Average Goodput: 0.162799, Average FCT: 234.628
+Average throughput: 0.0717728 , Average Goodput: 0.162799 , Average FCT: 234.628
 
 ##########################################
 
-#   no. of connections= 8, Mobility stream index= 2    #
+#   no. of connections= 8 , Mobility stream index= 2    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -728,11 +728,11 @@ Flow no. 5:  Throughput= 0.0778706:  Goodput= 0.217995,  FCT= 183.465
 Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 7:  Throughput= 0:  Goodput= 0,  FCT= 0
 4 flows out of total 8 flows completed successfully.
-Average throughput: 0.0457607, Average Goodput: 0.12083, Average FCT: 176.98
+Average throughput: 0.0457607 , Average Goodput: 0.12083 , Average FCT: 176.98
 
 ##########################################
 
-#   no. of connections= 9, Mobility stream index= 2    #
+#   no. of connections= 9 , Mobility stream index= 2    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -756,11 +756,11 @@ Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 7:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 8:  Throughput= 0.0544887:  Goodput= 0.146973,  FCT= 262.195
 6 flows out of total 9 flows completed successfully.
-Average throughput: 0.0557045, Average Goodput: 0.128505, Average FCT: 215.18
+Average throughput: 0.0557045 , Average Goodput: 0.128505 , Average FCT: 215.18
 
 ##########################################
 
-#   no. of connections= 10, Mobility stream index= 2    #
+#   no. of connections= 10 , Mobility stream index= 2    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -784,11 +784,11 @@ Flow no. 7:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 8:  Throughput= 0.0530055:  Goodput= 0.129581,  FCT= 269.532
 Flow no. 9:  Throughput= 0:  Goodput= 0,  FCT= 0
 5 flows out of total 10 flows completed successfully.
-Average throughput: 0.0543325, Average Goodput: 0.174255, Average FCT: 205.768
+Average throughput: 0.0543325 , Average Goodput: 0.174255 , Average FCT: 205.768
 
 ##########################################
 
-#   no. of connections= 1, Mobility stream index= 3    #
+#   no. of connections= 1 , Mobility stream index= 3    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -799,11 +799,11 @@ Setting up 1 connections...
 Flow 0: currentTxBytes= 39747528,  currentRxBytes= 5000384, Goodput= 0.125804,  Throuput= 0.0771681, FCT: 185.139
 Flow no. 0:  Throughput= 0.0771681:  Goodput= 0.125804,  FCT= 185.139
 1 flows out of total 1 flows completed successfully.
-Average throughput: 0.0771681, Average Goodput: 0.125804, Average FCT: 185.139
+Average throughput: 0.0771681 , Average Goodput: 0.125804 , Average FCT: 185.139
 
 ##########################################
 
-#   no. of connections= 2, Mobility stream index= 3    #
+#   no. of connections= 2 , Mobility stream index= 3    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -816,11 +816,11 @@ Flow 0: currentTxBytes= 34364272,  currentRxBytes= 5000176, Goodput= 0.145505,  
 Flow no. 0:  Throughput= 0.0669113:  Goodput= 0.145505,  FCT= 213.51
 Flow no. 1:  Throughput= 0.130667:  Goodput= 0.19455,  FCT= 109.336
 2 flows out of total 2 flows completed successfully.
-Average throughput: 0.0987893, Average Goodput: 0.170027, Average FCT: 161.423
+Average throughput: 0.0987893 , Average Goodput: 0.170027 , Average FCT: 161.423
 
 ##########################################
 
-#   no. of connections= 3, Mobility stream index= 3    #
+#   no. of connections= 3 , Mobility stream index= 3    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -834,11 +834,11 @@ Flow no. 0:  Throughput= 0:  Goodput= 0.0181149,  FCT= 0
 Flow no. 1:  Throughput= 0.122039:  Goodput= 0.23477,  FCT= 117.067
 Flow no. 2:  Throughput= 0.0822339:  Goodput= 0.137325,  FCT= 173.725
 2 flows out of total 3 flows completed successfully.
-Average throughput: 0.0680909, Average Goodput: 0.13007, Average FCT: 145.396
+Average throughput: 0.0680909 , Average Goodput: 0.13007 , Average FCT: 145.396
 
 ##########################################
 
-#   no. of connections= 4, Mobility stream index= 3    #
+#   no. of connections= 4 , Mobility stream index= 3    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -853,11 +853,11 @@ Flow no. 1:  Throughput= 0.124404:  Goodput= 0.304481,  FCT= 114.836
 Flow no. 2:  Throughput= 0.0786671:  Goodput= 0.148845,  FCT= 181.602
 Flow no. 3:  Throughput= 0:  Goodput= 0.0260046,  FCT= 0
 2 flows out of total 4 flows completed successfully.
-Average throughput: 0.0507677, Average Goodput: 0.127361, Average FCT: 148.219
+Average throughput: 0.0507677 , Average Goodput: 0.127361 , Average FCT: 148.219
 
 ##########################################
 
-#   no. of connections= 5, Mobility stream index= 3    #
+#   no. of connections= 5 , Mobility stream index= 3    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -874,11 +874,11 @@ Flow no. 2:  Throughput= 0.081597:  Goodput= 0.180016,  FCT= 175.083
 Flow no. 3:  Throughput= 0:  Goodput= 0.0306553,  FCT= 0
 Flow no. 4:  Throughput= 0.0497905:  Goodput= 0.128234,  FCT= 286.922
 3 flows out of total 5 flows completed successfully.
-Average throughput: 0.0341036, Average Goodput: 0.0881617, Average FCT: 275.699
+Average throughput: 0.0341036 , Average Goodput: 0.0881617 , Average FCT: 275.699
 
 ##########################################
 
-#   no. of connections= 6, Mobility stream index= 3    #
+#   no. of connections= 6 , Mobility stream index= 3    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -895,11 +895,11 @@ Flow no. 3:  Throughput= 0:  Goodput= 0.0420512,  FCT= 0
 Flow no. 4:  Throughput= 0:  Goodput= 0.0298021,  FCT= 0
 Flow no. 5:  Throughput= 0:  Goodput= 0,  FCT= 0
 2 flows out of total 6 flows completed successfully.
-Average throughput: 0.0340388, Average Goodput: 0.111527, Average FCT: 145.89
+Average throughput: 0.0340388 , Average Goodput: 0.111527 , Average FCT: 145.89
 
 ##########################################
 
-#   no. of connections= 7, Mobility stream index= 3    #
+#   no. of connections= 7 , Mobility stream index= 3    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -918,11 +918,11 @@ Flow no. 4:  Throughput= 0.0595209:  Goodput= 0.157992,  FCT= 240.016
 Flow no. 5:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
 3 flows out of total 7 flows completed successfully.
-Average throughput: 0.0370207, Average Goodput: 0.101584, Average FCT: 180.437
+Average throughput: 0.0370207 , Average Goodput: 0.101584 , Average FCT: 180.437
 
 ##########################################
 
-#   no. of connections= 8, Mobility stream index= 3    #
+#   no. of connections= 8 , Mobility stream index= 3    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -943,11 +943,11 @@ Flow no. 5:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 7:  Throughput= 0:  Goodput= 0.0625739,  FCT= 0
 4 flows out of total 8 flows completed successfully.
-Average throughput: 0.0360509, Average Goodput: 0.11236, Average FCT: 240.432
+Average throughput: 0.0360509 , Average Goodput: 0.11236 , Average FCT: 240.432
 
 ##########################################
 
-#   no. of connections= 9, Mobility stream index= 3    #
+#   no. of connections= 9 , Mobility stream index= 3    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -969,11 +969,11 @@ Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 7:  Throughput= 0.131469:  Goodput= 0.45705,  FCT= 108.67
 Flow no. 8:  Throughput= 0:  Goodput= 0.0332971,  FCT= 0
 4 flows out of total 9 flows completed successfully.
-Average throughput: 0.0401145, Average Goodput: 0.124063, Average FCT: 209.505
+Average throughput: 0.0401145 , Average Goodput: 0.124063 , Average FCT: 209.505
 
 ##########################################
 
-#   no. of connections= 10, Mobility stream index= 3    #
+#   no. of connections= 10 , Mobility stream index= 3    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -998,11 +998,11 @@ Flow no. 7:  Throughput= 0:  Goodput= 0.0471239,  FCT= 0
 Flow no. 8:  Throughput= 0.0710201:  Goodput= 0.263199,  FCT= 201.154
 Flow no. 9:  Throughput= 0.0380101:  Goodput= 0.0864363,  FCT= 375.866
 6 flows out of total 10 flows completed successfully.
-Average throughput: 0.0397114, Average Goodput: 0.12682, Average FCT: 260.942
+Average throughput: 0.0397114 , Average Goodput: 0.12682 , Average FCT: 260.942
 
 ##########################################
 
-#   no. of connections= 1, Mobility stream index= 4    #
+#   no. of connections= 1 , Mobility stream index= 4    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -1013,11 +1013,11 @@ Setting up 1 connections...
 Flow 0: currentTxBytes= 99028408,  currentRxBytes= 5000136, Goodput= 0.0504919,  Throuput= 0.0328223, FCT: 435.256
 Flow no. 0:  Throughput= 0.0328223:  Goodput= 0.0504919,  FCT= 435.256
 1 flows out of total 1 flows completed successfully.
-Average throughput: 0.0328223, Average Goodput: 0.0504919, Average FCT: 435.256
+Average throughput: 0.0328223 , Average Goodput: 0.0504919 , Average FCT: 435.256
 
 ##########################################
 
-#   no. of connections= 2, Mobility stream index= 4    #
+#   no. of connections= 2 , Mobility stream index= 4    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -1030,11 +1030,11 @@ Flow 0: currentTxBytes= 111558032,  currentRxBytes= 5000344, Goodput= 0.0448228,
 Flow no. 0:  Throughput= 0.0291571:  Goodput= 0.0448228,  FCT= 489.99
 Flow no. 1:  Throughput= 0.974281:  Goodput= 0.97456,  FCT= 14.6644
 2 flows out of total 2 flows completed successfully.
-Average throughput: 0.501719, Average Goodput: 0.509691, Average FCT: 252.327
+Average throughput: 0.501719 , Average Goodput: 0.509691 , Average FCT: 252.327
 
 ##########################################
 
-#   no. of connections= 3, Mobility stream index= 4    #
+#   no. of connections= 3 , Mobility stream index= 4    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -1048,11 +1048,11 @@ Flow no. 0:  Throughput= 0.0924927:  Goodput= 0.166603,  FCT= 154.455
 Flow no. 1:  Throughput= 0.95575:  Goodput= 0.974763,  FCT= 14.9487
 Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
 2 flows out of total 3 flows completed successfully.
-Average throughput: 0.349414, Average Goodput: 0.380455, Average FCT: 84.702
+Average throughput: 0.349414 , Average Goodput: 0.380455 , Average FCT: 84.702
 
 ##########################################
 
-#   no. of connections= 4, Mobility stream index= 4    #
+#   no. of connections= 4 , Mobility stream index= 4    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -1067,11 +1067,11 @@ Flow no. 1:  Throughput= 0.950107:  Goodput= 0.97492,  FCT= 15.0375
 Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 3:  Throughput= 0:  Goodput= 0.0275156,  FCT= 0
 2 flows out of total 4 flows completed successfully.
-Average throughput: 0.286505, Average Goodput: 0.340948, Average FCT: 43.9788
+Average throughput: 0.286505 , Average Goodput: 0.340948 , Average FCT: 43.9788
 
 ##########################################
 
-#   no. of connections= 5, Mobility stream index= 4    #
+#   no. of connections= 5 , Mobility stream index= 4    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json
@@ -1088,11 +1088,11 @@ Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
 Flow no. 3:  Throughput= 0.307557:  Goodput= 0.550776,  FCT= 46.4506
 Flow no. 4:  Throughput= 0:  Goodput= 0,  FCT= 0
 3 flows out of total 5 flows completed successfully.
-Average throughput: 0.248588, Average Goodput: 0.347967, Average FCT: 62.1267
+Average throughput: 0.248588 , Average Goodput: 0.347967 , Average FCT: 62.1267
 
 ##########################################
 
-#   no. of connections= 6, Mobility stream index= 4    #
+#   no. of connections= 6 , Mobility stream index= 4    #
 Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
 Build commands will be stored in build/compile_commands.json

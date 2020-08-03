@@ -13,7 +13,7 @@ BEGIN{
            conNo=$5
 	}
    if($2=="flows"){
-	   failures=$6-$1
+	   failure=$6-$1
 	}
    if($2=="throughput:"){
            throughput=$3
@@ -21,7 +21,7 @@ BEGIN{
            FCT=$11
         }
    if($1=="##########################################"){
-           print conNo " "indx" "throughput" " goodput" " failure" " FCT
+           print conNo "  "indx"   "throughput"        " goodput"        " failure"   " FCT
         } 
 }
 

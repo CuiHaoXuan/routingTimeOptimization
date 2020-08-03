@@ -301,7 +301,7 @@ switch (mobilityModel)
        std::cout<<"Flow no. "<<UAVflow[i].flowNo<<":  Throughput= "<<UAVflow[i].throughput<<":  Goodput= "<<UAVflow[i].goodput<<",  FCT= "<<UAVflow[i].FCT<<std::endl;
       }
   std::cout<<count<< " flows out of total "<<nSinks<<" flows completed successfully."<<std::endl;
-  std::cout<<"Average throughput: "<<throughput/nSinks<<", Average Goodput: "<<goodput/nSinks<<", Average FCT: "<<FCT/count<<std::endl;
+  std::cout<<"Average throughput: "<<throughput/nSinks<<" , Average Goodput: "<<goodput/nSinks<<" , Average FCT: "<<FCT/count<<std::endl;
   Simulator::Destroy ();
 return count;
   
