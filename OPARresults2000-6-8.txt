@@ -1,0 +1,640 @@
+#   no. of connections= 1 , Mobility stream index= 6    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.443s)
+OPAR, total time: 500, pathLenWeight: 0.8, no. UAVs: 50, no. Conections: 1
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 6
+Setting up 1 connections...
+Flow no. 0:  Throughput= 0:  Goodput= 0.024495,  FCT= 0
+0 flows out of total 1 flows completed successfully.
+Average throughput: 0 , Average Goodput: 0.024495 , Average FCT: -nan
+
+##########################################
+
+#   no. of connections= 2 , Mobility stream index= 6    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.423s)
+OPAR, total time: 500, pathLenWeight: 0.7, no. UAVs: 50, no. Conections: 2
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 6
+Setting up 2 connections...
+Flow 1: currentTxBytes= 76345824,  currentRxBytes= 5000384, Goodput= 0.0654965,  Throuput= 0.034099, FCT: 418.98
+Flow no. 0:  Throughput= 0:  Goodput= 0.0128284,  FCT= 0
+Flow no. 1:  Throughput= 0.034099:  Goodput= 0.0654965,  FCT= 418.98
+1 flows out of total 2 flows completed successfully.
+Average throughput: 0.0170495 , Average Goodput: 0.0391624 , Average FCT: 418.98
+
+##########################################
+
+#   no. of connections= 3 , Mobility stream index= 6    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.451s)
+OPAR, total time: 500, pathLenWeight: 0.5, no. UAVs: 50, no. Conections: 3
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 6
+Setting up 3 connections...
+Flow 2: currentTxBytes= 34958216,  currentRxBytes= 5000176, Goodput= 0.143033,  Throuput= 0.0766134, FCT: 186.472
+Flow 1: currentTxBytes= 78503504,  currentRxBytes= 5000416, Goodput= 0.0636967,  Throuput= 0.0300672, FCT: 475.165
+Flow no. 0:  Throughput= 0:  Goodput= 0.0132549,  FCT= 0
+Flow no. 1:  Throughput= 0.0300672:  Goodput= 0.0636967,  FCT= 475.165
+Flow no. 2:  Throughput= 0.0766134:  Goodput= 0.143033,  FCT= 186.472
+2 flows out of total 3 flows completed successfully.
+Average throughput: 0.0355602 , Average Goodput: 0.0733282 , Average FCT: 330.818
+
+##########################################
+
+#   no. of connections= 4 , Mobility stream index= 6    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.454s)
+OPAR, total time: 500, pathLenWeight: 0.5, no. UAVs: 50, no. Conections: 4
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 6
+Setting up 4 connections...
+Flow 2: currentTxBytes= 40609984,  currentRxBytes= 5014320, Goodput= 0.123475,  Throuput= 0.0551509, FCT: 259.772
+Flow 3: currentTxBytes= 61344544,  currentRxBytes= 5000216, Goodput= 0.0815104,  Throuput= 0.0417925, FCT: 341.84
+Flow 1: currentTxBytes= 66475456,  currentRxBytes= 5000296, Goodput= 0.0752202,  Throuput= 0.0344437, FCT: 414.78
+Flow no. 0:  Throughput= 0:  Goodput= 0.0188509,  FCT= 0
+Flow no. 1:  Throughput= 0.0344437:  Goodput= 0.0752202,  FCT= 414.78
+Flow no. 2:  Throughput= 0.0551509:  Goodput= 0.123475,  FCT= 259.772
+Flow no. 3:  Throughput= 0.0417925:  Goodput= 0.0815104,  FCT= 341.84
+3 flows out of total 4 flows completed successfully.
+Average throughput: 0.0328468 , Average Goodput: 0.0747641 , Average FCT: 338.797
+
+##########################################
+
+#   no. of connections= 5 , Mobility stream index= 6    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.440s)
+OPAR, total time: 500, pathLenWeight: 0.5, no. UAVs: 50, no. Conections: 5
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 6
+Setting up 5 connections...
+Flow 2: currentTxBytes= 30913400,  currentRxBytes= 5000136, Goodput= 0.161747,  Throuput= 0.0810648, FCT: 176.231
+Flow 3: currentTxBytes= 69590688,  currentRxBytes= 5000496, Goodput= 0.0718558,  Throuput= 0.037626, FCT: 379.715
+Flow 1: currentTxBytes= 68709808,  currentRxBytes= 5000296, Goodput= 0.0727741,  Throuput= 0.0301894, FCT: 473.231
+Flow 4: currentTxBytes= 88657768,  currentRxBytes= 5000216, Goodput= 0.0563991,  Throuput= 0.0286155, FCT: 499.251
+Flow no. 0:  Throughput= 0:  Goodput= 0.042041,  FCT= 0
+Flow no. 1:  Throughput= 0.0301894:  Goodput= 0.0727741,  FCT= 473.231
+Flow no. 2:  Throughput= 0.0810648:  Goodput= 0.161747,  FCT= 176.231
+Flow no. 3:  Throughput= 0.037626:  Goodput= 0.0718558,  FCT= 379.715
+Flow no. 4:  Throughput= 0.0286155:  Goodput= 0.0563991,  FCT= 499.251
+4 flows out of total 5 flows completed successfully.
+Average throughput: 0.0354991 , Average Goodput: 0.0809633 , Average FCT: 382.107
+
+##########################################
+
+#   no. of connections= 6 , Mobility stream index= 6    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.436s)
+OPAR, total time: 500, pathLenWeight: 0.4, no. UAVs: 50, no. Conections: 6
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 6
+Setting up 6 connections...
+Flow 2: currentTxBytes= 46580424,  currentRxBytes= 5000424, Goodput= 0.10735,  Throuput= 0.0447695, FCT: 319.122
+Flow 3: currentTxBytes= 61807552,  currentRxBytes= 5000296, Goodput= 0.0809011,  Throuput= 0.0376099, FCT: 379.861
+Flow 5: currentTxBytes= 67126968,  currentRxBytes= 5000336, Goodput= 0.0744907,  Throuput= 0.0351003, FCT: 407.024
+Flow 1: currentTxBytes= 67839632,  currentRxBytes= 5000048, Goodput= 0.0737039,  Throuput= 0.0300987, FCT: 474.634
+Flow 4: currentTxBytes= 87335616,  currentRxBytes= 5000424, Goodput= 0.0572553,  Throuput= 0.0286489, FCT: 498.69
+Flow no. 0:  Throughput= 0:  Goodput= 0.0505012,  FCT= 0
+Flow no. 1:  Throughput= 0.0300987:  Goodput= 0.0737039,  FCT= 474.634
+Flow no. 2:  Throughput= 0.0447695:  Goodput= 0.10735,  FCT= 319.122
+Flow no. 3:  Throughput= 0.0376099:  Goodput= 0.0809011,  FCT= 379.861
+Flow no. 4:  Throughput= 0.0286489:  Goodput= 0.0572553,  FCT= 498.69
+Flow no. 5:  Throughput= 0.0351003:  Goodput= 0.0744907,  FCT= 407.024
+5 flows out of total 6 flows completed successfully.
+Average throughput: 0.0293712 , Average Goodput: 0.0740337 , Average FCT: 415.866
+
+##########################################
+
+#   no. of connections= 7 , Mobility stream index= 6    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.432s)
+OPAR, total time: 500, pathLenWeight: 0.4, no. UAVs: 50, no. Conections: 7
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 6
+Setting up 7 connections...
+Flow 5: currentTxBytes= 52210184,  currentRxBytes= 5000296, Goodput= 0.0957724,  Throuput= 0.042585, FCT: 335.484
+Flow 3: currentTxBytes= 56211856,  currentRxBytes= 5000216, Goodput= 0.088953,  Throuput= 0.0407549, FCT: 350.542
+Flow 2: currentTxBytes= 57446608,  currentRxBytes= 5000384, Goodput= 0.087044,  Throuput= 0.0403975, FCT: 353.655
+Flow 1: currentTxBytes= 57846952,  currentRxBytes= 5000504, Goodput= 0.0864437,  Throuput= 0.0346825, FCT: 411.941
+Flow 4: currentTxBytes= 77463160,  currentRxBytes= 5000136, Goodput= 0.0645486,  Throuput= 0.0288535, FCT: 495.126
+Flow no. 0:  Throughput= 0:  Goodput= 0.0588659,  FCT= 0
+Flow no. 1:  Throughput= 0.0346825:  Goodput= 0.0864437,  FCT= 411.941
+Flow no. 2:  Throughput= 0.0403975:  Goodput= 0.087044,  FCT= 353.655
+Flow no. 3:  Throughput= 0.0407549:  Goodput= 0.088953,  FCT= 350.542
+Flow no. 4:  Throughput= 0.0288535:  Goodput= 0.0645486,  FCT= 495.126
+Flow no. 5:  Throughput= 0.042585:  Goodput= 0.0957724,  FCT= 335.484
+Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
+5 flows out of total 7 flows completed successfully.
+Average throughput: 0.0267533 , Average Goodput: 0.068804 , Average FCT: 389.35
+
+##########################################
+
+#   no. of connections= 8 , Mobility stream index= 6    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.415s)
+OPAR, total time: 500, pathLenWeight: 0.2, no. UAVs: 50, no. Conections: 8
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 6
+Setting up 8 connections...
+Flow 4: currentTxBytes= 33869360,  currentRxBytes= 5000384, Goodput= 0.147637,  Throuput= 0.0612394, FCT: 233.295
+Flow 2: currentTxBytes= 31652120,  currentRxBytes= 5000096, Goodput= 0.15797,  Throuput= 0.0582597, FCT: 245.212
+Flow 0: currentTxBytes= 58033800,  currentRxBytes= 5000048, Goodput= 0.0861575,  Throuput= 0.0456359, FCT: 313.04
+Flow 3: currentTxBytes= 53532304,  currentRxBytes= 5000008, Goodput= 0.0934017,  Throuput= 0.0432952, FCT: 329.961
+Flow 5: currentTxBytes= 71026704,  currentRxBytes= 5000096, Goodput= 0.0703974,  Throuput= 0.0347484, FCT: 411.126
+Flow no. 0:  Throughput= 0.0456359:  Goodput= 0.0861575,  FCT= 313.04
+Flow no. 1:  Throughput= 0:  Goodput= 0.0543016,  FCT= 0
+Flow no. 2:  Throughput= 0.0582597:  Goodput= 0.15797,  FCT= 245.212
+Flow no. 3:  Throughput= 0.0432952:  Goodput= 0.0934017,  FCT= 329.961
+Flow no. 4:  Throughput= 0.0612394:  Goodput= 0.147637,  FCT= 233.295
+Flow no. 5:  Throughput= 0.0347484:  Goodput= 0.0703974,  FCT= 411.126
+Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 7:  Throughput= 0:  Goodput= 0,  FCT= 0
+5 flows out of total 8 flows completed successfully.
+Average throughput: 0.0303973 , Average Goodput: 0.0762332 , Average FCT: 306.527
+
+##########################################
+
+#   no. of connections= 9 , Mobility stream index= 6    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.416s)
+OPAR, total time: 500, pathLenWeight: 0.1, no. UAVs: 50, no. Conections: 9
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 6
+Setting up 9 connections...
+Flow 1: currentTxBytes= 35144040,  currentRxBytes= 5000256, Goodput= 0.142279,  Throuput= 0.0666418, FCT: 214.377
+Flow 8: currentTxBytes= 39369424,  currentRxBytes= 5000136, Goodput= 0.127006,  Throuput= 0.0624466, FCT: 228.773
+Flow 5: currentTxBytes= 35614088,  currentRxBytes= 5000088, Goodput= 0.140396,  Throuput= 0.0544102, FCT: 262.56
+Flow 4: currentTxBytes= 50710184,  currentRxBytes= 5000216, Goodput= 0.0986038,  Throuput= 0.0440156, FCT: 324.575
+Flow 2: currentTxBytes= 46289992,  currentRxBytes= 5000176, Goodput= 0.108019,  Throuput= 0.0426479, FCT: 334.981
+Flow 3: currentTxBytes= 58996976,  currentRxBytes= 5000048, Goodput= 0.0847509,  Throuput= 0.0422813, FCT: 337.876
+Flow no. 0:  Throughput= 0:  Goodput= 0.0541263,  FCT= 0
+Flow no. 1:  Throughput= 0.0666418:  Goodput= 0.142279,  FCT= 214.377
+Flow no. 2:  Throughput= 0.0426479:  Goodput= 0.108019,  FCT= 334.981
+Flow no. 3:  Throughput= 0.0422813:  Goodput= 0.0847509,  FCT= 337.876
+Flow no. 4:  Throughput= 0.0440156:  Goodput= 0.0986038,  FCT= 324.575
+Flow no. 5:  Throughput= 0.0544102:  Goodput= 0.140396,  FCT= 262.56
+Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 7:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 8:  Throughput= 0.0624466:  Goodput= 0.127006,  FCT= 228.773
+6 flows out of total 9 flows completed successfully.
+Average throughput: 0.0347159 , Average Goodput: 0.0839089 , Average FCT: 283.857
+
+##########################################
+
+#   no. of connections= 10 , Mobility stream index= 6    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.399s)
+OPAR, total time: 500, pathLenWeight: 0.1, no. UAVs: 50, no. Conections: 10
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 6
+Setting up 10 connections...
+Flow 5: currentTxBytes= 42202792,  currentRxBytes= 5000376, Goodput= 0.118484,  Throuput= 0.0513478, FCT: 278.236
+Flow 3: currentTxBytes= 48008080,  currentRxBytes= 5000296, Goodput= 0.104155,  Throuput= 0.0427242, FCT: 334.391
+Flow 4: currentTxBytes= 53609384,  currentRxBytes= 5000216, Goodput= 0.0932713,  Throuput= 0.0382838, FCT: 373.169
+Flow 2: currentTxBytes= 57063112,  currentRxBytes= 5000176, Goodput= 0.0876254,  Throuput= 0.0373771, FCT: 382.219
+Flow 8: currentTxBytes= 81306896,  currentRxBytes= 5000216, Goodput= 0.0614981,  Throuput= 0.0327536, FCT: 436.176
+Flow 1: currentTxBytes= 63723000,  currentRxBytes= 5000256, Goodput= 0.0784686,  Throuput= 0.0301777, FCT: 473.411
+Flow no. 0:  Throughput= 0:  Goodput= 0.0422031,  FCT= 0
+Flow no. 1:  Throughput= 0.0301777:  Goodput= 0.0784686,  FCT= 473.411
+Flow no. 2:  Throughput= 0.0373771:  Goodput= 0.0876254,  FCT= 382.219
+Flow no. 3:  Throughput= 0.0427242:  Goodput= 0.104155,  FCT= 334.391
+Flow no. 4:  Throughput= 0.0382838:  Goodput= 0.0932713,  FCT= 373.169
+Flow no. 5:  Throughput= 0.0513478:  Goodput= 0.118484,  FCT= 278.236
+Flow no. 6:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 7:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 8:  Throughput= 0.0327536:  Goodput= 0.0614981,  FCT= 436.176
+Flow no. 9:  Throughput= 0:  Goodput= 0.128504,  FCT= 0
+6 flows out of total 10 flows completed successfully.
+Average throughput: 0.0232664 , Average Goodput: 0.071421 , Average FCT: 379.6
+
+##########################################
+
+#   no. of connections= 1 , Mobility stream index= 7    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.391s)
+OPAR, total time: 500, pathLenWeight: 0.8, no. UAVs: 50, no. Conections: 1
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 7
+Setting up 1 connections...
+Flow no. 0:  Throughput= 0:  Goodput= 0.0201687,  FCT= 0
+0 flows out of total 1 flows completed successfully.
+Average throughput: 0 , Average Goodput: 0.0201687 , Average FCT: -nan
+
+##########################################
+
+#   no. of connections= 2 , Mobility stream index= 7    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.407s)
+OPAR, total time: 500, pathLenWeight: 0.7, no. UAVs: 50, no. Conections: 2
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 7
+Setting up 2 connections...
+Flow 1: currentTxBytes= 51431936,  currentRxBytes= 5000504, Goodput= 0.0972257,  Throuput= 0.0633407, FCT: 225.561
+Flow no. 0:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 1:  Throughput= 0.0633407:  Goodput= 0.0972257,  FCT= 225.561
+1 flows out of total 2 flows completed successfully.
+Average throughput: 0.0316703 , Average Goodput: 0.0486128 , Average FCT: 225.561
+
+##########################################
+
+#   no. of connections= 3 , Mobility stream index= 7    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.403s)
+OPAR, total time: 500, pathLenWeight: 0.5, no. UAVs: 50, no. Conections: 3
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 7
+Setting up 3 connections...
+Flow 1: currentTxBytes= 45667264,  currentRxBytes= 5000504, Goodput= 0.109499,  Throuput= 0.062187, FCT: 229.745
+Flow no. 0:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 1:  Throughput= 0.062187:  Goodput= 0.109499,  FCT= 229.745
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+1 flows out of total 3 flows completed successfully.
+Average throughput: 0.020729 , Average Goodput: 0.0364996 , Average FCT: 229.745
+
+##########################################
+
+#   no. of connections= 4 , Mobility stream index= 7    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.382s)
+OPAR, total time: 500, pathLenWeight: 0.5, no. UAVs: 50, no. Conections: 4
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 7
+Setting up 4 connections...
+Flow 1: currentTxBytes= 36686760,  currentRxBytes= 5000424, Goodput= 0.136301,  Throuput= 0.0717197, FCT: 199.205
+Flow no. 0:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 1:  Throughput= 0.0717197:  Goodput= 0.136301,  FCT= 199.205
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0:  Goodput= 0,  FCT= 0
+1 flows out of total 4 flows completed successfully.
+Average throughput: 0.0179299 , Average Goodput: 0.0340751 , Average FCT: 199.205
+
+##########################################
+
+#   no. of connections= 5 , Mobility stream index= 7    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.385s)
+OPAR, total time: 500, pathLenWeight: 0.5, no. UAVs: 50, no. Conections: 5
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 7
+Setting up 5 connections...
+Flow 1: currentTxBytes= 57014680,  currentRxBytes= 5000008, Goodput= 0.0876969,  Throuput= 0.0453219, FCT: 315.206
+Flow 4: currentTxBytes= 61986824,  currentRxBytes= 5000424, Goodput= 0.0806691,  Throuput= 0.0366434, FCT: 389.891
+Flow no. 0:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 1:  Throughput= 0.0453219:  Goodput= 0.0876969,  FCT= 315.206
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 4:  Throughput= 0.0366434:  Goodput= 0.0806691,  FCT= 389.891
+2 flows out of total 5 flows completed successfully.
+Average throughput: 0.0163931 , Average Goodput: 0.0336732 , Average FCT: 352.549
+
+##########################################
+
+#   no. of connections= 6 , Mobility stream index= 7    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.395s)
+OPAR, total time: 500, pathLenWeight: 0.4, no. UAVs: 50, no. Conections: 6
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 7
+Setting up 6 connections...
+Flow 1: currentTxBytes= 52374944,  currentRxBytes= 5000256, Goodput= 0.0954704,  Throuput= 0.0379731, FCT: 376.226
+Flow 4: currentTxBytes= 57657512,  currentRxBytes= 5000464, Goodput= 0.086727,  Throuput= 0.0370407, FCT: 385.712
+Flow no. 0:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 1:  Throughput= 0.0379731:  Goodput= 0.0954704,  FCT= 376.226
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 4:  Throughput= 0.0370407:  Goodput= 0.086727,  FCT= 385.712
+Flow no. 5:  Throughput= 0:  Goodput= 0.0128605,  FCT= 0
+2 flows out of total 6 flows completed successfully.
+Average throughput: 0.0125023 , Average Goodput: 0.0325096 , Average FCT: 380.969
+
+##########################################
+
+#   no. of connections= 7 , Mobility stream index= 7    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.398s)
+OPAR, total time: 500, pathLenWeight: 0.4, no. UAVs: 50, no. Conections: 7
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 7
+Setting up 7 connections...
+Flow 6: currentTxBytes= 21237136,  currentRxBytes= 5000424, Goodput= 0.235457,  Throuput= 0.0874276, FCT: 163.414
+Flow 1: currentTxBytes= 31753304,  currentRxBytes= 5000424, Goodput= 0.157477,  Throuput= 0.0637533, FCT: 224.097
+Flow 4: currentTxBytes= 61436264,  currentRxBytes= 5000216, Goodput= 0.0813887,  Throuput= 0.0375673, FCT: 380.287
+Flow no. 0:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 1:  Throughput= 0.0637533:  Goodput= 0.157477,  FCT= 224.097
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 4:  Throughput= 0.0375673:  Goodput= 0.0813887,  FCT= 380.287
+Flow no. 5:  Throughput= 0:  Goodput= 0.0244319,  FCT= 0
+Flow no. 6:  Throughput= 0.0874276:  Goodput= 0.235457,  FCT= 163.414
+3 flows out of total 7 flows completed successfully.
+Average throughput: 0.026964 , Average Goodput: 0.0712506 , Average FCT: 255.933
+
+##########################################
+
+#   no. of connections= 8 , Mobility stream index= 7    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.383s)
+OPAR, total time: 500, pathLenWeight: 0.2, no. UAVs: 50, no. Conections: 8
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 7
+Setting up 8 connections...
+Flow 6: currentTxBytes= 12671216,  currentRxBytes= 5000424, Goodput= 0.394629,  Throuput= 0.140752, FCT: 101.505
+Flow 7: currentTxBytes= 31360824,  currentRxBytes= 5000088, Goodput= 0.159437,  Throuput= 0.066768, FCT: 213.964
+Flow 4: currentTxBytes= 59757112,  currentRxBytes= 5000504, Goodput= 0.0836805,  Throuput= 0.0358227, FCT: 398.83
+Flow no. 0:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 1:  Throughput= 0:  Goodput= 0.0670031,  FCT= 0
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 4:  Throughput= 0.0358227:  Goodput= 0.0836805,  FCT= 398.83
+Flow no. 5:  Throughput= 0:  Goodput= 0.0345561,  FCT= 0
+Flow no. 6:  Throughput= 0.140752:  Goodput= 0.394629,  FCT= 101.505
+Flow no. 7:  Throughput= 0.066768:  Goodput= 0.159437,  FCT= 213.964
+3 flows out of total 8 flows completed successfully.
+Average throughput: 0.0304178 , Average Goodput: 0.0924132 , Average FCT: 238.099
+
+##########################################
+
+#   no. of connections= 9 , Mobility stream index= 7    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.376s)
+OPAR, total time: 500, pathLenWeight: 0.1, no. UAVs: 50, no. Conections: 9
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 7
+Setting up 9 connections...
+Flow 7: currentTxBytes= 19589072,  currentRxBytes= 5000424, Goodput= 0.255266,  Throuput= 0.120157, FCT: 118.902
+Flow 6: currentTxBytes= 25571048,  currentRxBytes= 5000176, Goodput= 0.195541,  Throuput= 0.0462586, FCT: 308.834
+Flow 1: currentTxBytes= 50359736,  currentRxBytes= 5000008, Goodput= 0.0992858,  Throuput= 0.0431346, FCT: 331.19
+Flow no. 0:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 1:  Throughput= 0.0431346:  Goodput= 0.0992858,  FCT= 331.19
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 4:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 5:  Throughput= 0:  Goodput= 0.030296,  FCT= 0
+Flow no. 6:  Throughput= 0.0462586:  Goodput= 0.195541,  FCT= 308.834
+Flow no. 7:  Throughput= 0.120157:  Goodput= 0.255266,  FCT= 118.902
+Flow no. 8:  Throughput= 0:  Goodput= 0.0407738,  FCT= 0
+3 flows out of total 9 flows completed successfully.
+Average throughput: 0.0232833 , Average Goodput: 0.069018 , Average FCT: 252.975
+
+##########################################
+
+#   no. of connections= 10 , Mobility stream index= 7    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.375s)
+OPAR, total time: 500, pathLenWeight: 0.1, no. UAVs: 50, no. Conections: 10
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 7
+Setting up 10 connections...
+Flow 7: currentTxBytes= 15700840,  currentRxBytes= 5000424, Goodput= 0.318481,  Throuput= 0.115541, FCT: 123.653
+Flow 6: currentTxBytes= 22670640,  currentRxBytes= 5007968, Goodput= 0.220901,  Throuput= 0.080145, FCT: 178.532
+Flow 5: currentTxBytes= 64075808,  currentRxBytes= 5000504, Goodput= 0.0780404,  Throuput= 0.0373103, FCT: 382.927
+Flow 8: currentTxBytes= 72020728,  currentRxBytes= 5000096, Goodput= 0.0694258,  Throuput= 0.0346323, FCT: 412.504
+Flow no. 0:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 1:  Throughput= 0:  Goodput= 0.0788793,  FCT= 0
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 4:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 5:  Throughput= 0.0373103:  Goodput= 0.0780404,  FCT= 382.927
+Flow no. 6:  Throughput= 0.080145:  Goodput= 0.220901,  FCT= 178.532
+Flow no. 7:  Throughput= 0.115541:  Goodput= 0.318481,  FCT= 123.653
+Flow no. 8:  Throughput= 0.0346323:  Goodput= 0.0694258,  FCT= 412.504
+Flow no. 9:  Throughput= 0:  Goodput= 0,  FCT= 0
+4 flows out of total 10 flows completed successfully.
+Average throughput: 0.0267628 , Average Goodput: 0.0765728 , Average FCT: 274.404
+
+##########################################
+
+#   no. of connections= 1 , Mobility stream index= 8    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.393s)
+OPAR, total time: 500, pathLenWeight: 0.8, no. UAVs: 50, no. Conections: 1
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 8
+Setting up 1 connections...
+Flow 0: currentTxBytes= 76622544,  currentRxBytes= 5000424, Goodput= 0.0652605,  Throuput= 0.0343795, FCT: 415.566
+Flow no. 0:  Throughput= 0.0343795:  Goodput= 0.0652605,  FCT= 415.566
+1 flows out of total 1 flows completed successfully.
+Average throughput: 0.0343795 , Average Goodput: 0.0652605 , Average FCT: 415.566
+
+##########################################
+
+#   no. of connections= 2 , Mobility stream index= 8    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.386s)
+OPAR, total time: 500, pathLenWeight: 0.7, no. UAVs: 50, no. Conections: 2
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 8
+Setting up 2 connections...
+Flow 0: currentTxBytes= 55216480,  currentRxBytes= 5000168, Goodput= 0.0905557,  Throuput= 0.0448245, FCT: 318.714
+Flow no. 0:  Throughput= 0.0448245:  Goodput= 0.0905557,  FCT= 318.714
+Flow no. 1:  Throughput= 0:  Goodput= 0.0155288,  FCT= 0
+1 flows out of total 2 flows completed successfully.
+Average throughput: 0.0224122 , Average Goodput: 0.0530423 , Average FCT: 318.714
+
+##########################################
+
+#   no. of connections= 3 , Mobility stream index= 8    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.387s)
+OPAR, total time: 500, pathLenWeight: 0.5, no. UAVs: 50, no. Conections: 3
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 8
+Setting up 3 connections...
+Flow no. 0:  Throughput= 0:  Goodput= 0.0457091,  FCT= 0
+Flow no. 1:  Throughput= 0:  Goodput= 0.0267802,  FCT= 0
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+0 flows out of total 3 flows completed successfully.
+Average throughput: 0 , Average Goodput: 0.0241631 , Average FCT: -nan
+
+##########################################
+
+#   no. of connections= 4 , Mobility stream index= 8    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.383s)
+OPAR, total time: 500, pathLenWeight: 0.5, no. UAVs: 50, no. Conections: 4
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 8
+Setting up 4 connections...
+Flow 3: currentTxBytes= 7362816,  currentRxBytes= 5000096, Goodput= 0.679101,  Throuput= 0.47923, FCT: 29.8103
+Flow 0: currentTxBytes= 78805000,  currentRxBytes= 5000176, Goodput= 0.06345,  Throuput= 0.03209, FCT: 445.192
+Flow no. 0:  Throughput= 0.03209:  Goodput= 0.06345,  FCT= 445.192
+Flow no. 1:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0.47923:  Goodput= 0.679101,  FCT= 29.8103
+2 flows out of total 4 flows completed successfully.
+Average throughput: 0.12783 , Average Goodput: 0.185638 , Average FCT: 237.501
+
+##########################################
+
+#   no. of connections= 5 , Mobility stream index= 8    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.381s)
+OPAR, total time: 500, pathLenWeight: 0.5, no. UAVs: 50, no. Conections: 5
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 8
+Setting up 5 connections...
+Flow 3: currentTxBytes= 8632264,  currentRxBytes= 5000176, Goodput= 0.579243,  Throuput= 0.244505, FCT: 58.4292
+Flow no. 0:  Throughput= 0:  Goodput= 0.0428766,  FCT= 0
+Flow no. 1:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0.244505:  Goodput= 0.579243,  FCT= 58.4292
+Flow no. 4:  Throughput= 0:  Goodput= 0.0443321,  FCT= 0
+1 flows out of total 5 flows completed successfully.
+Average throughput: 0.048901 , Average Goodput: 0.13329 , Average FCT: 58.4292
+
+##########################################
+
+#   no. of connections= 6 , Mobility stream index= 8    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.381s)
+OPAR, total time: 500, pathLenWeight: 0.4, no. UAVs: 50, no. Conections: 6
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 8
+Setting up 6 connections...
+Flow 3: currentTxBytes= 6080832,  currentRxBytes= 5000096, Goodput= 0.822272,  Throuput= 0.532452, FCT: 26.8306
+Flow 5: currentTxBytes= 50820640,  currentRxBytes= 5000096, Goodput= 0.0983871,  Throuput= 0.0461602, FCT: 309.487
+Flow no. 0:  Throughput= 0:  Goodput= 0.0267033,  FCT= 0
+Flow no. 1:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0.532452:  Goodput= 0.822272,  FCT= 26.8306
+Flow no. 4:  Throughput= 0:  Goodput= 0.0480855,  FCT= 0
+Flow no. 5:  Throughput= 0.0461602:  Goodput= 0.0983871,  FCT= 309.487
+2 flows out of total 6 flows completed successfully.
+Average throughput: 0.0964354 , Average Goodput: 0.165908 , Average FCT: 168.159
+
+##########################################
+
+#   no. of connections= 7 , Mobility stream index= 8    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.388s)
+OPAR, total time: 500, pathLenWeight: 0.4, no. UAVs: 50, no. Conections: 7
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 8
+Setting up 7 connections...
+Flow 3: currentTxBytes= 7570864,  currentRxBytes= 5000344, Goodput= 0.660472,  Throuput= 0.25642, FCT: 55.7159
+Flow 5: currentTxBytes= 49016880,  currentRxBytes= 5000096, Goodput= 0.102008,  Throuput= 0.0470633, FCT: 303.548
+Flow 6: currentTxBytes= 73144248,  currentRxBytes= 5000416, Goodput= 0.0683638,  Throuput= 0.0345489, FCT: 413.527
+Flow no. 0:  Throughput= 0:  Goodput= 0.0291483,  FCT= 0
+Flow no. 1:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0.25642:  Goodput= 0.660472,  FCT= 55.7159
+Flow no. 4:  Throughput= 0:  Goodput= 0.0124925,  FCT= 0
+Flow no. 5:  Throughput= 0.0470633:  Goodput= 0.102008,  FCT= 303.548
+Flow no. 6:  Throughput= 0.0345489:  Goodput= 0.0683638,  FCT= 413.527
+3 flows out of total 7 flows completed successfully.
+Average throughput: 0.0482904 , Average Goodput: 0.124641 , Average FCT: 257.597
+
+##########################################
+
+#   no. of connections= 8 , Mobility stream index= 8    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.374s)
+OPAR, total time: 500, pathLenWeight: 0.2, no. UAVs: 50, no. Conections: 8
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 8
+Setting up 8 connections...
+Flow 7: currentTxBytes= 4546296,  currentRxBytes= 5000288, Goodput= 1.09986,  Throuput= 0.838745, FCT: 17.0332
+Flow 3: currentTxBytes= 6431664,  currentRxBytes= 5000344, Goodput= 0.777457,  Throuput= 0.500305, FCT: 28.556
+Flow 5: currentTxBytes= 50562992,  currentRxBytes= 5000136, Goodput= 0.0988892,  Throuput= 0.0473153, FCT: 301.934
+Flow 4: currentTxBytes= 78280712,  currentRxBytes= 5000256, Goodput= 0.063876,  Throuput= 0.0346468, FCT: 412.345
+Flow 6: currentTxBytes= 88432040,  currentRxBytes= 5000128, Goodput= 0.056542,  Throuput= 0.0292855, FCT: 487.821
+Flow no. 0:  Throughput= 0:  Goodput= 0.0148345,  FCT= 0
+Flow no. 1:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0.500305:  Goodput= 0.777457,  FCT= 28.556
+Flow no. 4:  Throughput= 0.0346468:  Goodput= 0.063876,  FCT= 412.345
+Flow no. 5:  Throughput= 0.0473153:  Goodput= 0.0988892,  FCT= 301.934
+Flow no. 6:  Throughput= 0.0292855:  Goodput= 0.056542,  FCT= 487.821
+Flow no. 7:  Throughput= 0.838745:  Goodput= 1.09986,  FCT= 17.0332
+5 flows out of total 8 flows completed successfully.
+Average throughput: 0.181287 , Average Goodput: 0.263932 , Average FCT: 249.538
+
+##########################################
+
+#   no. of connections= 9 , Mobility stream index= 8    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+[1959/2044] Compiling scratch/UAVrouting.cc
+[2003/2044] Linking build/scratch/UAVrouting
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (3.034s)
+OPAR, total time: 500, pathLenWeight: 0.1, no. UAVs: 50, no. Conections: 9
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 8
+Setting up 9 connections...
+Flow 7: currentTxBytes= 4234632,  currentRxBytes= 5000040, Goodput= 1.18075,  Throuput= 0.825992, FCT: 17.2954
+Flow 3: currentTxBytes= 8772280,  currentRxBytes= 5000384, Goodput= 0.570021,  Throuput= 0.245159, FCT: 58.2757
+Flow 5: currentTxBytes= 47074416,  currentRxBytes= 5000344, Goodput= 0.106222,  Throuput= 0.0455863, FCT: 313.399
+Flow 6: currentTxBytes= 72056912,  currentRxBytes= 5000088, Goodput= 0.0693908,  Throuput= 0.0349533, FCT: 408.716
+Flow no. 0:  Throughput= 0:  Goodput= 0.0546916,  FCT= 0
+Flow no. 1:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0.245159:  Goodput= 0.570021,  FCT= 58.2757
+Flow no. 4:  Throughput= 0:  Goodput= 0.043057,  FCT= 0
+Flow no. 5:  Throughput= 0.0455863:  Goodput= 0.106222,  FCT= 313.399
+Flow no. 6:  Throughput= 0.0349533:  Goodput= 0.0693908,  FCT= 408.716
+Flow no. 7:  Throughput= 0.825992:  Goodput= 1.18075,  FCT= 17.2954
+Flow no. 8:  Throughput= 0:  Goodput= 0,  FCT= 0
+4 flows out of total 9 flows completed successfully.
+Average throughput: 0.127966 , Average Goodput: 0.224904 , Average FCT: 199.421
+
+##########################################
+
+#   no. of connections= 10 , Mobility stream index= 8    #
+Waf: Entering directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Waf: Leaving directory `/home/gharib2020/ns-3-allinone/ns-3.30/build'
+Build commands will be stored in build/compile_commands.json
+'build' finished successfully (0.382s)
+OPAR, total time: 500, pathLenWeight: 0.1, no. UAVs: 50, no. Conections: 10
+Speed: 50, Trans. Range: 138.8, X: 300, Y: 2000, Z: 50, Mobility model: RWP, stream Index: 8
+Setting up 10 connections...
+Flow 7: currentTxBytes= 4360552,  currentRxBytes= 5000080, Goodput= 1.14666,  Throuput= 0.640527, FCT: 22.3034
+Flow 3: currentTxBytes= 9081552,  currentRxBytes= 5000424, Goodput= 0.550613,  Throuput= 0.246412, FCT: 57.9798
+Flow 5: currentTxBytes= 45029288,  currentRxBytes= 5000096, Goodput= 0.111041,  Throuput= 0.0458234, FCT: 311.762
+Flow 6: currentTxBytes= 68607224,  currentRxBytes= 5000456, Goodput= 0.0728853,  Throuput= 0.0354714, FCT: 402.775
+Flow 4: currentTxBytes= 82542752,  currentRxBytes= 5000296, Goodput= 0.0605783,  Throuput= 0.0310353, FCT: 460.333
+Flow 9: currentTxBytes= 86264240,  currentRxBytes= 5000048, Goodput= 0.057962,  Throuput= 0.0297674, FCT: 479.915
+Flow 0: currentTxBytes= 70252272,  currentRxBytes= 5025328, Goodput= 0.0715326,  Throuput= 0.0289959, FCT: 495.176
+Flow no. 0:  Throughput= 0.0289959:  Goodput= 0.0715326,  FCT= 495.176
+Flow no. 1:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 2:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 3:  Throughput= 0.246412:  Goodput= 0.550613,  FCT= 57.9798
+Flow no. 4:  Throughput= 0.0310353:  Goodput= 0.0605783,  FCT= 460.333
+Flow no. 5:  Throughput= 0.0458234:  Goodput= 0.111041,  FCT= 311.762
+Flow no. 6:  Throughput= 0.0354714:  Goodput= 0.0728853,  FCT= 402.775
+Flow no. 7:  Throughput= 0.640527:  Goodput= 1.14666,  FCT= 22.3034
+Flow no. 8:  Throughput= 0:  Goodput= 0,  FCT= 0
+Flow no. 9:  Throughput= 0.0297674:  Goodput= 0.057962,  FCT= 479.915
+7 flows out of total 10 flows completed successfully.
+Average throughput: 0.105803 , Average Goodput: 0.207127 , Average FCT: 318.606
+
+##########################################
+

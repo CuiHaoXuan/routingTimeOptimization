@@ -87,7 +87,7 @@ static NodeContainer adhocNodes;
 static const uint32_t writeSize = 1040;
 static uint8_t data[writeSize];
 static MobilityHelper mobilityAdhoc;
-static int const nWifi=50;//number of UAVs
+static int const nWifi=65;//number of UAVs
 static double linkLifetime[nWifi][nWifi]={};//initilize the linkLifetime matix with all zeros 
 static Ptr<Socket> mobilityTrackingSocket[nWifi];
 static double posMatrix[nWifi][12]={};//each row includes three sets of (time,x,y,z) 
@@ -96,6 +96,7 @@ static double totalTime=100;
 static double pathLenWeight=0.5;// 0 <= pathLenWeight <= 1. pathLenWeight=1 leads to shortest path, pathLenWeight=0 leads to the path with longest lifeTime
 static double pathLifetimeWeight=1-pathLenWeight;
 static double routCheckTime=0.3;//the rout is checked each routCheckTime second
+static int nodeSpeed=20;  //in m/s
 
 
 class Flow
@@ -180,6 +181,7 @@ int main (int argc, char *argv[])
   cmd.AddValue("Z","Area height to echo",Z);
   cmd.AddValue("routCheckTime","routCheckTime to echo",routCheckTime);
   cmd.AddValue("pathLenWeight","Path length weight to echo",pathLenWeight);
+  cmd.AddValue("nodeSpeed","Max node speed to echo",nodeSpeed);
   cmd.Parse (argc, argv);
 
   std::string phyMode ("DsssRate11Mbps");
@@ -200,7 +202,7 @@ switch (mobilityModel)
     }
 
   std::cout<<"OPAR, total time: "<<totalTime<<", pathLenWeight: "<<pathLenWeight<<", no. UAVs: "<<nWifi<<", no. Conections: "<<nSinks<<std::endl;
-  std::cout<<"Trans. Range: "<<TrRange<<", X: "<<X<<", Y: "<<Y<<", Z: "<<Z<<", Mobility model: "<<mobilityName<<", stream Index: "<<streamIndex<<std::endl; 
+  std::cout<<"Speed: "<<nodeSpeed<<", Trans. Range: "<<TrRange<<", X: "<<X<<", Y: "<<Y<<", Z: "<<Z<<", Mobility model: "<<mobilityName<<", stream Index: "<<streamIndex<<std::endl; 
 
   std::stringstream ss;
   ss<<"traceFiles/OPAR_UAV"<<nWifi<<"Con"<<nSinks<<"_"<<mobilityName<< "_"<<streamIndex;
@@ -280,11 +282,11 @@ switch (mobilityModel)
   //Ptr<FlowMonitor> flowmon;
 
   //wifiPhy.EnablePcapAll (tr_name);
-  wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
+  //wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
   //MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
 
-  AnimationInterface anim (tr_name+".xml");
-  anim.SetMaxPktsPerTraceFile (200000000);
+  //AnimationInterface anim (tr_name+".xml");
+  //anim.SetMaxPktsPerTraceFile (200000000);
 
   //FlowMonitorHelper flowmonHelper;
   //flowmon = flowmonHelper.InstallAll (); 
@@ -844,7 +846,6 @@ NS_LOG_FUNCTION("setupMobility");
   Ptr<PositionAllocator> taPositionAlloc = pos.Create ()->GetObject<PositionAllocator> ();
   streamIndex += taPositionAlloc->AssignStreams (streamIndex);
 
-  int nodeSpeed=20;  //in m/s
   int nodePause = 0; //in s
   double direction=6.283185307; // in radian
   double pitch=0.05; // in radian

@@ -62,6 +62,8 @@ void setupRoutingProtocol(uint32_t,NodeContainer);
 YansWifiPhyHelper setupWifiPhy(double);
 Ipv4InterfaceContainer setupIP(NetDeviceContainer);
 
+static uint32_t routingProtocol=1;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
+static const uint32_t bandWidth=2800000;
 static const uint16_t port = 50000;
 static const uint32_t totalRxBytes = 5000000;
 static Ipv4InterfaceContainer adhocInterfaces;
@@ -71,13 +73,19 @@ static NodeContainer adhocNodes;
 // we want to detect data splicing in the output stream)
 static const uint32_t writeSize = 1040;
 uint8_t data[writeSize];
+static   int nWifi=50;
+static const uint32_t payloadSize = 536; //bytes
+static  double totalTime=100;
+static  double startTime=5;
 static int nodeSpeed=20;  //in m/s
 
 class Flow
 {
 public:
   Flow();
-  void setupConnection(int,int,int,uint16_t,Ipv4InterfaceContainer,NodeContainer);
+  void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
+  void accept(Ptr<Socket>,const ns3::Address&);
+  void restart();
 
   double throughput;
   double goodput;
@@ -88,15 +96,15 @@ public:
   int flowNo;
   uint32_t currentTxBytes;
   uint32_t currentRxBytes;
+  ApplicationContainer apps;
+  Ptr<Socket> sinkSocket;
 
 private:
   uint32_t currentTxPackets; 
   uint32_t currentRxPackets;
-  Ptr<Socket> sourceSocket;
-  Ptr<Socket> sinkSocket;
+  //Ptr<Socket> sourceSocket;
 
-  void WriteUntilBufferFull (Ptr<Socket>, uint32_t);
-  void accept(Ptr<Socket>,const ns3::Address&);
+
   void ReceivePacket (Ptr<Socket>);
   void CwndTracer (uint32_t , uint32_t );
 };
@@ -116,12 +124,9 @@ Flow::Flow()
 //###################### main() ###########################
 int main (int argc, char *argv[])
 {
-  int nSinks=1;
+  int nSinks=2;
   int64_t streamIndex = 0; // used to get consistent mobility across scenarios
-  double totalTime=100;
   uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
-  uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
-  int nWifi=50;
   double txp=7.5;
   double X=300.0;
   double Y=1500.0;
@@ -139,7 +144,7 @@ int main (int argc, char *argv[])
   cmd.AddValue("X","Area width to echo",X);
   cmd.AddValue("Y","Area Length to echo",Y);
   cmd.AddValue("Z","Area height to echo",Z);
-  cmd.AddValue("nodeSpeed","Maximum speed to echo",nodeSpeed);
+  cmd.AddValue("nodeSpeed","Node speed to echo",nodeSpeed);
   cmd.Parse (argc, argv);
 
   std::string phyMode ("DsssRate11Mbps");
@@ -179,7 +184,7 @@ switch (mobilityModel)
     }
 
     std::cout<<routingName<<", total time: "<<totalTime<<", no. UAVs: "<<nWifi<<", no. Conections: "<<nSinks<<std::endl;
-  std::cout<<"Speed: "<<nodeSpeed<<", X: "<<X<<", Y: "<<Y<<", Z: "<<Z<<", Mobility model: "<<mobilityName<<", stream Index: "<<streamIndex<<std::endl;  
+  std::cout<<"Node speed "<<nodeSpeed<<", X: "<<X<<", Y: "<<Y<<", Z: "<<Z<<", Mobility model: "<<mobilityName<<", stream Index: "<<streamIndex<<std::endl;  
 
   std::stringstream ss;
   ss<<"traceFiles/UAV"<<nWifi<<"Con"<<nSinks<<routingName<<"_"<<mobilityName<< "_"<<streamIndex;
@@ -225,6 +230,17 @@ switch (mobilityModel)
 
   //setup mobility
   setupMobility(X,Y,Z,adhocNodes,mobilityModel,streamIndex);  
+/*
+ MobilityHelper mobilityAdhoc;
+  
+  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+  for(int i=0;i<nWifi;i++)
+     positionAlloc->Add (Vector (70*i,0,15));
+  mobilityAdhoc.SetPositionAllocator(positionAlloc);
+  mobilityAdhoc.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobilityAdhoc.Install (adhocNodes); 
+*/
+
   NS_LOG_UNCOND ("Setting up Mobility...");
   //setup routing protocol
   setupRoutingProtocol(routingProtocol,adhocNodes);
@@ -233,24 +249,35 @@ switch (mobilityModel)
   adhocInterfaces=setupIP(adhocDevices);
   NS_LOG_UNCOND ("Setting up IP address for nodes...");
   
-  ///////////////////////////////////////////////////////////////////////////
-  // Simulation 1
-  //
-  // Send 2000000 bytes over a connection to server port 50000 at time 0
-  // Should observe SYN exchange, a lot of data segments and ACKS, and FIN 
-  // exchange.  FIN exchange isn't quite compliant with TCP spec (see release
-  // notes for more info)
-  //
-  ///////////////////////////////////////////////////////////////////////////
-
   // Create the connections...
 
   Flow UAVflow[nSinks];
   std::cout<<"Setting up "<<nSinks<<" connections..."<<std::endl;
   
   for (int i = 0; i < nSinks; i++)
-     {        
-        UAVflow[i].setupConnection(i*2,i*2+1,i,port,adhocInterfaces,adhocNodes);
+     {  
+       UAVflow[i].source=2*i;
+       UAVflow[i].sink=2*i+1;
+       UAVflow[i].flowNo=i;
+       Config::SetDefault ("ns3::TcpSocket::SegmentSize", UintegerValue (payloadSize));
+       UAVflow[i].sinkSocket = Socket::CreateSocket (adhocNodes.Get (UAVflow[i].sink), TcpSocketFactory::GetTypeId ());
+       InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), port);
+       UAVflow[i].sinkSocket->Bind(local);
+       UAVflow[i].sinkSocket->Listen();
+       UAVflow[i].sinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,&UAVflow[i]));
+//***********
+       OnOffHelper onoff1 ("ns3::TcpSocketFactory",Ipv4Address::GetAny ());
+       onoff1.SetAttribute ("OnTime", StringValue ("ns3::ConstantRandomVariable[Constant=1]"));
+       onoff1.SetAttribute ("OffTime", StringValue ("ns3::ConstantRandomVariable[Constant=0]"));
+       onoff1.SetAttribute ("PacketSize", UintegerValue (payloadSize));
+       onoff1.SetAttribute ("DataRate", DataRateValue (bandWidth)); //bit/s
+       AddressValue remoteAddress (InetSocketAddress (adhocInterfaces.GetAddress (UAVflow[i].sink), port)); 
+       onoff1.SetAttribute ("Remote", remoteAddress);
+       UAVflow[i].apps.Add (onoff1.Install (adhocNodes.Get (UAVflow[i].source)));
+  
+       UAVflow[i].apps.Start (Seconds (startTime));
+       UAVflow[i].apps.Stop (Seconds (totalTime));
+       //Simulator::Schedule (Seconds (1.0), &Flow::restart, &UAVflow[i]);
      }
      
   // One can toggle the comment for the following line on or off to see  
@@ -329,14 +356,14 @@ Flow::ReceivePacket (Ptr<Socket> socket)
    Ptr<Packet> packet = socket->Recv ();
    this->currentRxPackets+=1;
    this->currentRxBytes+=packet->GetSize ();
-//if (this->currentRxPackets%1000==0) std::cout<<"Time "<<Simulator::Now ().GetSeconds ()<<", received "<<currentRxPackets<<" packets"<<std::endl;
+//if (this->currentRxPackets%1000==0) std::cout<<"Flow "<<this->flowNo<<": Time "<<Simulator::Now ().GetSeconds ()<<", received "<<currentRxPackets<<" packets"<<std::endl;
    if(currentRxBytes>=totalRxBytes)
       {   
-         sourceSocket->Close ();
+         //sourceSocket->Close ();
          socket->ShutdownRecv();
          this->successfullyTerminated=true;
-         this->FCT=Simulator::Now ().GetSeconds ();
-         this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps
+         this->FCT=Simulator::Now ().GetSeconds ()-startTime;
+         this->throughput=(double(this->currentRxBytes)*8/this->FCT)/bandWidth;//the BW is 2.8Mbps
          this->goodput= (double(this->currentRxBytes)/double(this->currentTxBytes));
          std::cout<<"Flow "<<this->flowNo<<": currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<", Goodput= "<<this->goodput<<",  Throuput= "<< this->throughput<<", FCT: "<<this->FCT<<std::endl;
       }
@@ -362,8 +389,10 @@ Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
       uint32_t toWrite = writeSize - dataOffset;
       toWrite = std::min (toWrite, left);
       toWrite = std::min (toWrite, sourceSocket->GetTxAvailable ());
-      int amountSent = sourceSocket->Send (&data[dataOffset], toWrite, 0); 
- 
+if (routingProtocol==1)
+    toWrite=52;
+      int amountSent = sourceSocket->Send (Create<Packet> (toWrite));//(&data[dataOffset], toWrite, 0); 
+      std::cout<<"WriteUntilBufferFull: towrite: "<<toWrite<<", sent"<<amountSent<<", SOCKET ERROR NO: "<<sourceSocket->ERROR_MSGSIZE<<std::endl;
       if(amountSent < 0)
         {
           return;  
@@ -482,8 +511,8 @@ mobilityAdhoc.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
 
 void setupRoutingProtocol(uint32_t protocol,NodeContainer adhocNodes)
 {
-NS_LOG_FUNCTION("setupMobility");
-AodvHelper aodv;
+  NS_LOG_FUNCTION("setupMobility");
+  AodvHelper aodv;
   OlsrHelper olsr;
   DsdvHelper dsdv;
   DsrHelper dsr;
@@ -510,7 +539,13 @@ AodvHelper aodv;
 
 // Now add ip/tcp stack to all nodes.
 InternetStackHelper internet;
-  if (protocol < 4)
+  if (protocol==1)
+    {
+      internet.SetRoutingHelper (olsr);
+      for (int i=0;i<nWifi;i++)
+           internet.Install (adhocNodes.Get(i)); 
+    }
+  else if(protocol>1 && protocol < 4)
     {
       internet.SetRoutingHelper (list);
       internet.InstallAll();// (adhocNodes);
@@ -549,34 +584,15 @@ setupIP(NetDeviceContainer adhocDevices)
   return adhocInterfaces;
 }
 
-void 
-Flow::setupConnection(int source,int destination, int flowNo,uint16_t  port,Ipv4InterfaceContainer adhocInterfaces,NodeContainer adhocNodes)
+void
+Flow::restart()
 {
-  this->flowNo=flowNo;
- // Create and bind the sink socket...
-  TypeId tid = TypeId::LookupByName ("ns3::TcpNewReno");
-  Config::Set ("/NodeList/*/$ns3::TcpL4Protocol/SocketType", TypeIdValue (tid));
-  sinkSocket = Socket::CreateSocket (adhocNodes.Get (destination), TcpSocketFactory::GetTypeId ());
-  InetSocketAddress local = InetSocketAddress (Ipv4Address::GetAny (), port);
-  sinkSocket->Bind(local);
-  sinkSocket->Listen();
-
-  // Create and bind the source socket...
-  sourceSocket = Socket::CreateSocket (adhocNodes.Get (source), TcpSocketFactory::GetTypeId ());
-  sourceSocket->Bind ();
-
-//begin implementation of sending "Application"
-  NS_LOG_LOGIC ("Starting flow at time " <<  Simulator::Now ().GetSeconds ());
-  sourceSocket->Connect (InetSocketAddress (adhocInterfaces.GetAddress (destination), port)); //connect
-
-  sinkSocket->SetAcceptCallback (MakeNullCallback<bool, Ptr<Socket>,const Address &> (),MakeCallback(&Flow::accept,this));
-  // Trace changes to the congestion window
-  Config::ConnectWithoutContext ("/NodeList/*/$ns3::TcpL4Protocol/SocketList/0/CongestionWindow", MakeCallback (&Flow::CwndTracer,this));
-
-
-  
-  // tell the tcp implementation to call WriteUntilBufferFull again
-  // if we blocked and new tx buffer space becomes available
-  sourceSocket->SetSendCallback (MakeCallback (&Flow::WriteUntilBufferFull,this));
-  WriteUntilBufferFull (sourceSocket, sourceSocket->GetTxAvailable ()); 
+  if(!this->successfullyTerminated)
+    {
+        std::cout<<"Flow no "<<this->flowNo<<", Time "<<Simulator::Now ().GetSeconds ()<<", restart"<<std::endl;
+        this->apps.Start (Seconds (Simulator::Now ().GetSeconds ()));
+       //UAVflow[i].apps.Stop (Seconds (totalTime+1));
+       Simulator::Schedule (Seconds (1.0), &Flow::restart, this);
+    }
 }
+
