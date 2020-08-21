@@ -118,7 +118,7 @@ int main (int argc, char *argv[])
 {
   int nSinks=1;
   int64_t streamIndex = 0; // used to get consistent mobility across scenarios
-  double totalTime=100;
+  double totalTime=500;
   uint32_t mobilityModel=1;//1-RWP, 2-GaussMarkov 
   uint32_t routingProtocol=2;//1-OLSR, 2-AODV, 3-DSDV, 4-DSR
   int nWifi=50;
@@ -265,11 +265,11 @@ switch (mobilityModel)
   //Ptr<FlowMonitor> flowmon;
 
   //wifiPhy.EnablePcapAll (tr_name);
-  wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
+  //wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
   //MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
 
-  //AnimationInterface anim (tr_name+".xml");
-  //anim.SetMaxPktsPerTraceFile (200000000);
+  AnimationInterface anim (tr_name+".xml");
+  anim.SetMaxPktsPerTraceFile (200000000);
 
   //FlowMonitorHelper flowmonHelper;
   //flowmon = flowmonHelper.InstallAll (); 

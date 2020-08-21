@@ -72,8 +72,11 @@ void traceUAVpositions();
 void BFS(double **,uint32_t,uint32_t,int *);//Breadth First Search
 double objectiveValue(int *);
 void removeLowestLifetimes(double **, int *);
+void removeHighestLoads(double **, int *);
 int routLen(int *);
 bool isSamePath(int*,int*);
+int ** U(int**,int**);
+int ** cleanup(int**);
 
 static double txp=7.5;
 static double TrRange=138.8;//Transmit range: for txp=7.5 dbm it is 138.8 m
@@ -87,16 +90,17 @@ static NodeContainer adhocNodes;
 static const uint32_t writeSize = 1040;
 static uint8_t data[writeSize];
 static MobilityHelper mobilityAdhoc;
-static int const nWifi=95;//number of UAVs
-static double linkLifetime[nWifi][nWifi]={};//initilize the linkLifetime matix with all zeros 
+static int const nWifi=50;//number of UAVs
+static double linkLifetime[nWifi][nWifi]={};//initilize the linkLifetime matix with all zeros
+static int load[nWifi]={};//initilize the load array with all zeros  
 static Ptr<Socket> mobilityTrackingSocket[nWifi];
 static double posMatrix[nWifi][12]={};//each row includes three sets of (time,x,y,z) 
 static int traceCount=0;
-static double totalTime=100;
-static double pathLenWeight=0.5;// 0 <= pathLenWeight <= 1. pathLenWeight=1 leads to shortest path, pathLenWeight=0 leads to the path with longest lifeTime
-static double pathLifetimeWeight=1-pathLenWeight;
+static double totalTime=500;
+static double pathLenWeight=0.33;// 0 <= pathLenWeight <= 1 
+static double pathLifetimeWeight=0.33;// 0 <=pathLifetimeWeight<=1
+static double pathLoadWeight=1-(pathLifetimeWeight+pathLenWeight);// 0 <=pathLoadWeight<=1
 static double routCheckTime=0.3;//the rout is checked each routCheckTime second
-static int nodeSpeed=20;  //in m/s
 
 
 class Flow
@@ -136,6 +140,8 @@ private:
   void updatePathIfNotAlive();
   void printRout(); 
   void sendFromNewPath();  
+  int** pathSetLifeTime();
+  int** pathSetLoad();
 };
 
 Flow::Flow()
@@ -181,7 +187,6 @@ int main (int argc, char *argv[])
   cmd.AddValue("Z","Area height to echo",Z);
   cmd.AddValue("routCheckTime","routCheckTime to echo",routCheckTime);
   cmd.AddValue("pathLenWeight","Path length weight to echo",pathLenWeight);
-  cmd.AddValue("nodeSpeed","Max node speed to echo",nodeSpeed);
   cmd.Parse (argc, argv);
 
   std::string phyMode ("DsssRate11Mbps");
@@ -202,7 +207,7 @@ switch (mobilityModel)
     }
 
   std::cout<<"OPAR, total time: "<<totalTime<<", pathLenWeight: "<<pathLenWeight<<", no. UAVs: "<<nWifi<<", no. Conections: "<<nSinks<<std::endl;
-  std::cout<<"Speed: "<<nodeSpeed<<", Trans. Range: "<<TrRange<<", X: "<<X<<", Y: "<<Y<<", Z: "<<Z<<", Mobility model: "<<mobilityName<<", stream Index: "<<streamIndex<<std::endl; 
+  std::cout<<"Trans. Range: "<<TrRange<<", X: "<<X<<", Y: "<<Y<<", Z: "<<Z<<", Mobility model: "<<mobilityName<<", stream Index: "<<streamIndex<<std::endl; 
 
   std::stringstream ss;
   ss<<"traceFiles/OPAR_UAV"<<nWifi<<"Con"<<nSinks<<"_"<<mobilityName<< "_"<<streamIndex;
@@ -285,8 +290,8 @@ switch (mobilityModel)
   //wifiPhy.EnableAsciiAll (ascii.CreateFileStream (tr_name+".tr"));
   //MobilityHelper::EnableAsciiAll (ascii.CreateFileStream (tr_name + ".mob"));
 
-  //AnimationInterface anim (tr_name+".xml");
-  //anim.SetMaxPktsPerTraceFile (200000000);
+  AnimationInterface anim (tr_name+".xml");
+  anim.SetMaxPktsPerTraceFile (200000000);
 
   //FlowMonitorHelper flowmonHelper;
   //flowmon = flowmonHelper.InstallAll (); 
@@ -403,6 +408,7 @@ objectiveValue(int *path)
 {
   double objective=0;
   double lowestLifetime =totalTime;
+  double highestLoad=0;
   int len=routLen(path);
   for(int i=0;i<len;i++)
      {
@@ -410,8 +416,12 @@ objectiveValue(int *path)
           {
             lowestLifetime=linkLifetime[path[i]][path[i+1]];
           } 
+       if(load[path[i]]>highestLoad)
+          {
+            highestLoad=load[path[i]];
+          }
      }  
-  objective=pathLenWeight*len+pathLifetimeWeight/lowestLifetime;
+  objective=pathLenWeight*len+pathLifetimeWeight/lowestLifetime+pathLoadWeight*highestLoad;
   return objective;
 }
 
@@ -437,6 +447,31 @@ removeLowestLifetimes(double netGraph[nWifi][nWifi], int *path)
                }
           }
      }
+}
+
+void 
+removeHighestLoads(double netGraph[nWifi][nWifi], int *path)
+{
+  int len=routLen(path);
+  double highestLoad=0;
+  for(int i=0;i<len;i++)
+     {
+       if(load[path[i]]>highestLoad)
+          {
+            highestLoad=load[path[i]];
+          } 
+     }
+  for(int i=0;i<nWifi;i++)
+     {
+       if(load[i]>=highestLoad)
+         {
+           for (int j=0;j<nWifi;j++)
+              {
+                netGraph[i][j]=0;
+                netGraph[j][i]=0;
+              }
+         }
+    }
 }
 
 
@@ -672,6 +707,8 @@ else
        }
 //end of bisection method
   time=tNew;
+  if (time<1)
+      time=0;
   return time;
 }
 
@@ -724,7 +761,7 @@ int
 Flow::posInRout(int intermediateSink)
 {
   int pos=-1;
-  for (int i=0; i<=nWifi;i++)
+  for (int i=0; i<nWifi;i++)
       {
          if (this->rout[i]==intermediateSink)
              pos=i;
@@ -846,6 +883,7 @@ NS_LOG_FUNCTION("setupMobility");
   Ptr<PositionAllocator> taPositionAlloc = pos.Create ()->GetObject<PositionAllocator> ();
   streamIndex += taPositionAlloc->AssignStreams (streamIndex);
 
+  int nodeSpeed=20;  //in m/s
   int nodePause = 0; //in s
   double direction=6.283185307; // in radian
   double pitch=0.05; // in radian
@@ -957,49 +995,34 @@ setupIP(NetDeviceContainer adhocDevices)
 void 
 Flow::findRout()
 {
-  updateLifetimes();
-    
+  updateLifetimes();    
   for(int i=0;i<nWifi;i++)
      {
        this->oldRout[i]=this->rout[i];
        this->rout[i]=-1;
      }
-  int path[nWifi]; 
-  bool pathAvailable=true;
-  double objective;
-  objective=10000;//Just a big number
-  double netGraph[nWifi][nWifi];
-  for(int i=0;i<nWifi;i++)
-    {
-      for(int j=0;j<nWifi;j++)
-         {
-           netGraph[i][j]=linkLifetime[i][j];
-         }
-     }
+  double objective=100000;
+  int pathSet1[nWifi][nWifi];
+  int pathSet2[nWifi][nWifi];
+  int pathSet[nWifi][nWifi];
 
-  while(pathAvailable)//OPAR routing
-    { 
-      for (int i=0; i<nWifi; i++)
-         {
-           path[i]=-1;
-         }      
-      BFS(netGraph,this->source,this->sink,path);
-      if(path[0]==-1)
+  pathSet1=pathSetLifeTime();
+  pathSet2=pathSetLoad();
+  pathSet=U(pathSet1,pathSet2);//the  union of two sets
+
+  for(int i=0;i<length(pathSet);i++)
+    {
+      if(pathSet[i][0]==-1)
         {
           pathAvailable=false;
         }  
-      else if (objectiveValue(path)<objective)
+      else if (objectiveValue(pathSet[i])<objective)
          {
-           objective=objectiveValue(path);
-           for(int i=0;i<nWifi;i++)
-               this->rout[i]=path[i];
-           removeLowestLifetimes(netGraph,path);
+           objective=objectiveValue(pathSet[i]);
+           for(int j=0;j<nWifi;j++)
+               this->rout[j]=pathSet[i][j];           
          }
-      else
-         {
-           removeLowestLifetimes(netGraph,path);
-         }      
-    }//end of OPAR routing
+    }
 
   if(this->rout[0]==-1)//there is no rout
      {
@@ -1015,6 +1038,8 @@ Flow::findRout()
           //this->printRout();
           sendFromNewPath();
           Simulator::Schedule (Seconds (routCheckTime), &Flow::updatePathIfNotAlive,this);
+          decLoad(this->oldRout);
+          incLoad(this->rout);           
         }
       else
         {
@@ -1066,6 +1091,100 @@ Flow::printRout()
       for(int i=0;i<=pathLen;i++)
           std::cout<<this->rout[i]<<" ";
       std::cout<<std::endl;
+}
+
+int **
+Flow::pathSetLifeTime()
+{
+  int pathSet[nWifi][nWifi];
+  int count=0; 
+  bool pathAvailable=true;
+  double netGraph[nWifi][nWifi];
+  for(int i=0;i<nWifi;i++)
+    {
+      for(int j=0;j<nWifi;j++)
+         {
+           netGraph[i][j]=linkLifetime[i][j];
+           pathSet[i][j]=-1;
+         }
+     }
+
+  while(pathAvailable)//Find the set of paths based on their length and lifetime
+    {    
+      BFS(netGraph,this->source,this->sink,pathset[count]);
+      if(path[count][0]==-1)
+        {
+          pathAvailable=false;
+        }  
+      else
+         {
+           removeLowestLifetimes(netGraph,path[count]);
+           count++;
+         }   
+    }
+pathSet=cleanup(pathSet);
+return pathSet;
+}
+
+int **
+Flow::pathSetLoad()
+{
+  int pathSet[nWifi][nWifi];
+  int count=0; 
+  bool pathAvailable=true;
+  double netGraph[nWifi][nWifi];
+  for(int i=0;i<nWifi;i++)
+    {
+      for(int j=0;j<nWifi;j++)
+         {
+           netGraph[i][j]=linkLifetime[i][j];
+           pathSet[i][j]=-1;
+         }
+     }
+
+  while(pathAvailable)//Find the set of paths based on their length and lifetime
+    {    
+      BFS(netGraph,this->source,this->sink,pathset[count]);
+      if(path[count][0]==-1)
+        {
+          pathAvailable=false;
+        }  
+      else
+         {
+           removeHighestLoads(netGraph,path[count]);
+           count++;
+         }   
+    }
+pathSet=cleanup(pathSet);
+return pathSet;
+}
+
+int ** 
+cleanup(int**pathSet)
+{
+  int count=0;
+  int ** tempPathSet;
+  for (int i=0;i<nWifi;i++)
+    {
+      if (pathSet[i][0]!=-1)
+        {
+          for(int j=0;j<=routLen(pathSet[i]);j++)
+             {
+               tempPathSet[count][j]=pathSet[i][j];
+             }
+          count++;
+        }
+    }
+  pathSet=tempPathSet;
+  return pathSet;
+}
+
+int ** 
+U(int**pathSet1,int**pathSet2)
+{
+  int ** pathSet;
+  pathSet=pathSet1;
+  return pathSet;
 }
 
 void
