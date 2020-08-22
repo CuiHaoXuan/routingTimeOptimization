@@ -61,23 +61,6 @@ using namespace std;
 
 NS_LOG_COMPONENT_DEFINE ("OPAR");
 
-void setupMobility(double, double,double,NodeContainer,uint32_t,int64_t);
-YansWifiPhyHelper setupWifiPhy(double);
-Ipv4InterfaceContainer setupIP(NetDeviceContainer);
-void setupMobilityTrack(NodeContainer);
-void updateLifetimes();
-double distance(uint32_t,uint32_t);
-double lifeTime(uint32_t,uint32_t);
-void traceUAVpositions();
-void BFS(double **,uint32_t,uint32_t,int *);//Breadth First Search
-double objectiveValue(int *);
-void removeLowestLifetimes(double **, int *);
-void removeHighestLoads(double **, int *);
-int routLen(int *);
-bool isSamePath(int*,int*);
-int ** U(int**,int**);
-int ** cleanup(int**);
-
 static double txp=7.5;
 static double TrRange=138.8;//Transmit range: for txp=7.5 dbm it is 138.8 m
 static const uint16_t port = 50000;
@@ -101,7 +84,27 @@ static double pathLenWeight=0.33;// 0 <= pathLenWeight <= 1
 static double pathLifetimeWeight=0.33;// 0 <=pathLifetimeWeight<=1
 static double pathLoadWeight=1-(pathLifetimeWeight+pathLenWeight);// 0 <=pathLoadWeight<=1
 static double routCheckTime=0.3;//the rout is checked each routCheckTime second
+static int currentRouts[nWifi][nWifi];
 
+void setupMobility(double, double,double,NodeContainer,uint32_t,int64_t);
+YansWifiPhyHelper setupWifiPhy(double);
+Ipv4InterfaceContainer setupIP(NetDeviceContainer);
+void setupMobilityTrack(NodeContainer);
+void updateLifetimes();
+double distance(uint32_t,uint32_t);
+double lifeTime(uint32_t,uint32_t);
+void traceUAVpositions();
+void BFS(double **,uint32_t,uint32_t,int *);//Breadth First Search
+double objectiveValue(int *);
+void removeLowestLifetimes(double **, int *);
+void removeHighestLoads(double **, int *);
+int routLen(int *);
+bool isSamePath(int*,int*);
+void U(int [nWifi][nWifi],int [nWifi][nWifi],int [nWifi][nWifi]);
+int length(int [2*nWifi][nWifi]);//return number of paths inside the matrix
+void updateLoads();
+bool isMember(int,int*);
+void affectedNodes(int,int*);
 
 class Flow
 {
@@ -140,8 +143,8 @@ private:
   void updatePathIfNotAlive();
   void printRout(); 
   void sendFromNewPath();  
-  int** pathSetLifeTime();
-  int** pathSetLoad();
+  void longestLifetimePathSet(int [nWifi][nWifi]);
+  void lowestLoadPathSet(int [nWifi][nWifi]);
 };
 
 Flow::Flow()
@@ -187,6 +190,7 @@ int main (int argc, char *argv[])
   cmd.AddValue("Z","Area height to echo",Z);
   cmd.AddValue("routCheckTime","routCheckTime to echo",routCheckTime);
   cmd.AddValue("pathLenWeight","Path length weight to echo",pathLenWeight);
+  cmd.AddValue("pathLifetimeWeight","Path lifetime weight to echo",pathLifetimeWeight);
   cmd.Parse (argc, argv);
 
   std::string phyMode ("DsssRate11Mbps");
@@ -263,7 +267,9 @@ switch (mobilityModel)
   NS_LOG_UNCOND ("Setting up IP address for nodes...");
 
   setupMobilityTrack(adhocNodes);
- 
+  for(int i=0;i<nWifi;i++)//initializing Currentrout Matrix
+     for(int j=0;j<nWifi;j++)
+        currentRouts[i][j]=-1;
   /////////////////////////////////////////////////////////////////////////// 
   // Send a file of 5000MB over a connection to the sink
   // Should observe SYN exchange, a lot of data segments and ACKS, and FIN 
@@ -421,7 +427,7 @@ objectiveValue(int *path)
             highestLoad=load[path[i]];
           }
      }  
-  objective=pathLenWeight*len+pathLifetimeWeight/lowestLifetime+pathLoadWeight*highestLoad;
+  objective=pathLenWeight*len+pathLifetimeWeight/lowestLifetime+pathLoadWeight*len*highestLoad;
   return objective;
 }
 
@@ -995,28 +1001,33 @@ setupIP(NetDeviceContainer adhocDevices)
 void 
 Flow::findRout()
 {
-  updateLifetimes();    
+  updateLifetimes();
+  updateLoads();     
   for(int i=0;i<nWifi;i++)
      {
        this->oldRout[i]=this->rout[i];
        this->rout[i]=-1;
      }
-  double objective=100000;
+  double objective=100000;//just a large enough number
   int pathSet1[nWifi][nWifi];
   int pathSet2[nWifi][nWifi];
-  int pathSet[nWifi][nWifi];
+  int pathSet[2*nWifi][nWifi];
 
-  pathSet1=pathSetLifeTime();
-  pathSet2=pathSetLoad();
-  pathSet=U(pathSet1,pathSet2);//the  union of two sets
+  for(int i=0;i<nWifi;i++)
+    for(int j=0;j<nWifi;j++)
+       {
+         pathSet1[i][j]=-1;
+         pathSet2[i][j]=-1;
+         pathSet[i][j]=-1;
+         pathSet[nWifi+i][j]=-1;
+       }
 
+  longestLifetimePathSet(pathSet1);
+  lowestLoadPathSet(pathSet2);
+  U(pathSet1,pathSet2,pathSet);//the  union of two sets
   for(int i=0;i<length(pathSet);i++)
     {
-      if(pathSet[i][0]==-1)
-        {
-          pathAvailable=false;
-        }  
-      else if (objectiveValue(pathSet[i])<objective)
+      if (pathSet[i][0]!=-1 && objectiveValue(pathSet[i])<objective)
          {
            objective=objectiveValue(pathSet[i]);
            for(int j=0;j<nWifi;j++)
@@ -1036,10 +1047,10 @@ Flow::findRout()
         {
           this->pathLen=routLen(this->rout);
           //this->printRout();
-          sendFromNewPath();
+          sendFromNewPath();          
           Simulator::Schedule (Seconds (routCheckTime), &Flow::updatePathIfNotAlive,this);
-          decLoad(this->oldRout);
-          incLoad(this->rout);           
+          for(int i=0;i<nWifi;i++)
+             currentRouts[this->flowNo][i]=this->rout[i];                 
         }
       else
         {
@@ -1093,10 +1104,9 @@ Flow::printRout()
       std::cout<<std::endl;
 }
 
-int **
-Flow::pathSetLifeTime()
-{
-  int pathSet[nWifi][nWifi];
+void
+Flow::longestLifetimePathSet(int pathSet[nWifi][nWifi])
+{  
   int count=0; 
   bool pathAvailable=true;
   double netGraph[nWifi][nWifi];
@@ -1105,31 +1115,28 @@ Flow::pathSetLifeTime()
       for(int j=0;j<nWifi;j++)
          {
            netGraph[i][j]=linkLifetime[i][j];
-           pathSet[i][j]=-1;
+           //pathSet[i][j]=-1;
          }
      }
 
   while(pathAvailable)//Find the set of paths based on their length and lifetime
     {    
-      BFS(netGraph,this->source,this->sink,pathset[count]);
-      if(path[count][0]==-1)
+      BFS(netGraph,this->source,this->sink,pathSet[count]);
+      if(pathSet[count][0]==-1)
         {
           pathAvailable=false;
         }  
       else
          {
-           removeLowestLifetimes(netGraph,path[count]);
+           removeLowestLifetimes(netGraph,pathSet[count]);
            count++;
          }   
     }
-pathSet=cleanup(pathSet);
-return pathSet;
 }
 
-int **
-Flow::pathSetLoad()
+void
+Flow::lowestLoadPathSet(int pathSet[nWifi][nWifi])
 {
-  int pathSet[nWifi][nWifi];
   int count=0; 
   bool pathAvailable=true;
   double netGraph[nWifi][nWifi];
@@ -1138,53 +1145,122 @@ Flow::pathSetLoad()
       for(int j=0;j<nWifi;j++)
          {
            netGraph[i][j]=linkLifetime[i][j];
-           pathSet[i][j]=-1;
+           //pathSet[i][j]=-1;
          }
      }
 
   while(pathAvailable)//Find the set of paths based on their length and lifetime
     {    
-      BFS(netGraph,this->source,this->sink,pathset[count]);
-      if(path[count][0]==-1)
+      BFS(netGraph,this->source,this->sink,pathSet[count]);
+      if(pathSet[count][0]==-1)
         {
           pathAvailable=false;
         }  
       else
          {
-           removeHighestLoads(netGraph,path[count]);
+           removeHighestLoads(netGraph,pathSet[count]);
            count++;
          }   
     }
-pathSet=cleanup(pathSet);
-return pathSet;
 }
 
-int ** 
-cleanup(int**pathSet)
+int
+length(int pathSet[2*nWifi][nWifi])
 {
-  int count=0;
-  int ** tempPathSet;
-  for (int i=0;i<nWifi;i++)
+  int len=0;
+  for(int i=0;i<nWifi;i++)
     {
-      if (pathSet[i][0]!=-1)
+      if(pathSet[i][0]!=-1)
+         len++;
+      else
+        return len;
+    }
+  return len;
+}
+
+void
+updateLoads()
+{
+  for(int i=0;i<nWifi;i++)
+      load[i]=0;
+ int count=0;
+ int sendingNodes[nWifi];
+ for(int i=0;i<nWifi;i++)
+    sendingNodes[i]=-1;
+
+ for(int i=0;i<nWifi;i++)//recognize the sending nodes 
+    for(int j=0;j<routLen(currentRouts[i]);j++)
+       {
+         if(currentRouts[i][j]!=-1 && !isMember(currentRouts[i][j],sendingNodes))
+           {
+            sendingNodes[count]=currentRouts[i][j];
+            count++; 
+           }
+       }
+
+ int m_affectedNodes[nWifi];
+ for(int i=0;i<=routLen(sendingNodes);i++)//to distinguish the nodes which affected by sending nodes
+    {
+      for(int j=0;j<nWifi;j++)
+         m_affectedNodes[j]=-1;
+      affectedNodes(sendingNodes[i],m_affectedNodes);
+      for(int j=0;j<=routLen(m_affectedNodes);j++)
+         load[m_affectedNodes[j]]++;      
+    }
+}
+
+void 
+U(int pathSet1[nWifi][nWifi] ,int pathSet2[nWifi][nWifi],int pathSet[2*nWifi][nWifi])
+{
+ int count=0;
+ for(int i=0;i<nWifi;i++)
+    {
+      if(pathSet1[i][0]!=-1)
         {
-          for(int j=0;j<=routLen(pathSet[i]);j++)
-             {
-               tempPathSet[count][j]=pathSet[i][j];
-             }
+          for(int j=0;j<nWifi;j++)
+             pathSet[count][j]=pathSet1[i][j];
           count++;
         }
     }
-  pathSet=tempPathSet;
-  return pathSet;
+ for(int i=0;i<nWifi;i++)
+    {
+      if(pathSet2[i][0]!=-1)
+        {
+          for(int j=0;j<nWifi;j++)
+             pathSet[count][j]=pathSet2[i][j];
+          count++;
+        }
+    }
 }
 
-int ** 
-U(int**pathSet1,int**pathSet2)
+bool 
+isMember(int node,int *arr)
 {
-  int ** pathSet;
-  pathSet=pathSet1;
-  return pathSet;
+ bool member=0;
+ for (int i=0;i<routLen(arr);i++)
+    {
+      if(arr[i]==node)
+        {
+          member=1;
+          return member;
+        }
+    }
+ return member;
+}
+
+void 
+affectedNodes(int node,int* m_affectedNodes)
+{
+  int count=0;
+  m_affectedNodes[count]=node;
+  for(int i=0;i<nWifi;i++)
+     { 
+       if(i!=node && distance(node,i)<TrRange)
+         {
+           count++;
+           m_affectedNodes[count]=i;
+         }
+     }
 }
 
 void
