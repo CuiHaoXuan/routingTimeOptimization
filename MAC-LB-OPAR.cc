@@ -63,6 +63,7 @@ NS_LOG_COMPONENT_DEFINE ("OPAR");
 
 static double txp=7.5;
 static double TrRange=138.8;//Transmit range: for txp=7.5 dbm it is 138.8 m
+static const uint32_t bandWidth=2800000;//the BW is 2.8Mbps
 static const uint16_t port = 50000;
 static const uint32_t totalRxBytes = 5000000;//5MB
 static Ipv4InterfaceContainer adhocInterfaces;
@@ -130,6 +131,7 @@ private:
   int oldRout[nWifi];
   bool packetReceived;
   bool noRout;
+  double sendingRate;
   
   Ptr<Socket> mainSourceSocket;
   Ptr<Socket> intermediatesourceSocket;
@@ -145,6 +147,7 @@ private:
   void sendFromNewPath();  
   void longestLifetimePathSet(int [nWifi][nWifi]);
   void lowestLoadPathSet(int [nWifi][nWifi]);
+  void resetSendingRate();
 };
 
 Flow::Flow()
@@ -158,7 +161,8 @@ Flow::Flow()
     currentRxPackets(0),
     pathLen(0),
     packetReceived(false),
-    noRout(true)
+    noRout(true),
+    sendingRate(0)
 {
    for(int i=0;i<nWifi;i++)
       {
@@ -806,7 +810,7 @@ Flow::ReceivePacket (Ptr<Socket> socket)
             this->successfullyTerminated=true;
             this->mainSourceSocket->Close();            
             this->FCT=Simulator::Now ().GetSeconds ();
-            this->throughput=(double(this->currentRxBytes)*8/this->FCT)/2800000;//the BW is 2.8Mbps 
+            this->throughput=(double(this->currentRxBytes)*8/this->FCT)/bandWidth;//the BW is 2.8Mbps 
             this->goodput= (double(this->currentRxBytes)/double(this->currentTxBytes));
             std::cout<<"Flow "<<this->flowNo<<": currentTxBytes= "<<this->currentTxBytes<<",  currentRxBytes= "<<this->currentRxBytes<<", Goodput= "<<this->goodput<<",  Throuput= "<< this->throughput<<", FCT: "<<this->FCT<<std::endl;
           }
@@ -846,7 +850,16 @@ Flow::ReceivePacket (Ptr<Socket> socket)
 void
 Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
 { 
-  while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0 &&!this->noRout && !this->successfullyTerminated) 
+  int highestLoad=0;
+  for(int i=0;i<this->pathLen;i++)
+     {
+       if(load[this->rout[i]]>highestLoad)
+          {
+            highestLoad=load[this->rout[i]];
+          }
+     }
+
+  while (this->currentRxBytes < totalRxBytes && sourceSocket->GetTxAvailable () > 0 &&!this->noRout && !this->successfullyTerminated && this->sendingRate<2*bandWidth/highestLoad) 
     { 
       uint32_t left = totalRxBytes - this->currentRxBytes;
       uint32_t dataOffset = this->currentTxBytes % writeSize;
@@ -858,6 +871,7 @@ Flow::WriteUntilBufferFull (Ptr<Socket> sourceSocket, uint32_t txSpace)
         {
           return;  
         }
+      this->sendingRate+=amountSent;
       this->currentTxBytes += amountSent;
       this->currentTxPackets+=1;
     } 
@@ -1044,13 +1058,14 @@ Flow::findRout()
     {
       this->noRout=false;
       if(!isSamePath(this->rout,this->oldRout))
-        {
+        {     
           this->pathLen=routLen(this->rout);
-          //this->printRout();
-          sendFromNewPath();          
+          //this->printRout();          
           Simulator::Schedule (Seconds (routCheckTime), &Flow::updatePathIfNotAlive,this);
           for(int i=0;i<nWifi;i++)
-             currentRouts[this->flowNo][i]=this->rout[i];                 
+             currentRouts[this->flowNo][i]=this->rout[i]; 
+          updateLoads(); 
+          sendFromNewPath();               
         }
       else
         {
@@ -1264,11 +1279,19 @@ affectedNodes(int node,int* m_affectedNodes)
 }
 
 void
+Flow::resetSendingRate()
+{
+  this->sendingRate=0;
+  Simulator::Schedule (Seconds (1), &Flow::resetSendingRate,this);
+}
+
+void
 Flow::setupConnection(uint32_t m_source, uint32_t m_sink, int m_flowNo)
 {
   this->source=m_source;
   this->sink=m_sink;
   this->flowNo=m_flowNo;
+  this->resetSendingRate();
   this->findRout();
 }
 
